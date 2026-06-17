@@ -780,7 +780,7 @@ var _cloudOk=false; // Firebase холбогдсон эсэх (true=cloud, false
 
 async function loadAllData(){
   // 1) Cloud-оос татах оролдлого
-  const [ru,rc,rq,rlb]=await Promise.all([fbGet('users'),fbGet('codes'),fbGet('questions'),fbGet('leaderboard')]);
+  const [ru,rc,rq,rlb,rst]=await Promise.all([fbGet('users'),fbGet('codes'),fbGet('questions'),fbGet('leaderboard'),fbGet('streaks')]);
 
   // 2) Local хуулбарууд (cloud амжилтгүй бол найдвартай нөөц эх үүсвэр)
   var lu={},lc=[],lq={};
@@ -832,6 +832,35 @@ async function loadAllData(){
 
   // ---- LEADERBOARD (бүх хэрэглэгчийн оноо, cloud) ----
   _cache.lb = rlb.ok ? (rlb.data||{}) : {};
+
+  // ---- STREAKS (өдрийн дараалал, cloud) ----
+  var cstreaks = rst.ok ? (rst.data||{}) : {};
+  _cache.streak = {};
+  Object.keys(cstreaks).forEach(function(u){ _cache.streak[u]=cstreaks[u]; });
+  // Энэ төхөөрөмж дээрх local streak-уудыг нэгтгэх (хуучин streak-ийг алдахгүй)
+  try{
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(!k || k.indexOf('nt_streak_')!==0) continue;
+      var su=k.slice(10); // 'nt_streak_' = 10 тэмдэгт
+      var loc; try{loc=JSON.parse(localStorage.getItem(k));}catch(e){continue;}
+      if(!loc) continue;
+      var cl=_cache.streak[su];
+      if(!cl){
+        // Cloud дээр байхгүй → local-оо cloud руу нүүлгэнэ
+        _cache.streak[su]=loc;
+        if(rst.ok) fbSet('streaks/'+su,loc);
+      }else if(String(loc.lastDate||'') > String(cl.lastDate||'')){
+        // Local илүү шинэ → local-оор шинэчилнэ
+        var mg={streak:loc.streak||0,lastDate:loc.lastDate||'',max:Math.max(loc.max||0,cl.max||0)};
+        _cache.streak[su]=mg;
+        if(rst.ok) fbSet('streaks/'+su,mg);
+      }else{
+        // Cloud илүү шинэ → cloud-ийг авна, max-ийг нэгтгэнэ
+        _cache.streak[su]={streak:cl.streak||0,lastDate:cl.lastDate||'',max:Math.max(loc.max||0,cl.max||0)};
+      }
+    }
+  }catch(e){}
 
   _loaded=true;
 }
@@ -909,6 +938,7 @@ function getStreak(u){
 function saveStreak(u,d){
   _cache.streak[u]=d;
   localStorage.setItem('nt_streak_'+u,JSON.stringify(d));
+  fbSet('streaks/'+u,d);
 }
 
 // PwdMeta — local
@@ -1603,6 +1633,8 @@ function deleteUser(u){
   localStorage.removeItem('nt_stats_'+u);
   if(_cache.lb)delete _cache.lb[u];
   fbSet('leaderboard/'+u,null);
+  if(_cache.streak)delete _cache.streak[u];
+  fbSet('streaks/'+u,null);
   showToast('Устгагдлаа');
   renderEditorContent();
   });
