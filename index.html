@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html lang="mn" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#13111f" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f0eef8" media="(prefers-color-scheme: light)">
+<title>Нийгэм & Соёл — Тест</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root[data-theme="light"]{--bg:#f0eef8;--bg2:#e4e1f4;--card:#fff;--purple:#6c5ce7;--pl:#a29bfe;--pd:#4c3bbf;--green:#00b894;--red:#e17055;--amber:#fdcb6e;--text:#2d2d3a;--t2:#6b6b80;--border:rgba(108,92,231,0.15);--sh:0 2px 12px rgba(108,92,231,0.08);--inp:#f0eef8;--blob1:rgba(162,155,254,.22);--blob2:rgba(0,184,148,.13)}
+:root[data-theme="dark"]{--bg:#13111f;--bg2:#1e1b2e;--card:#1e1b2e;--purple:#a29bfe;--pl:#c4bfff;--pd:#7c6ff7;--green:#00d2a8;--red:#ff7675;--amber:#ffeaa7;--text:#eae8ff;--t2:#9b99b8;--border:rgba(162,155,254,0.18);--sh:0 2px 16px rgba(0,0,0,0.35);--inp:#2a2640;--blob1:rgba(162,155,254,.1);--blob2:rgba(0,210,168,.07)}
+*{box-sizing:border-box;margin:0;padding:0;transition:background .25s,color .15s,border-color .15s}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100svh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+
+/* ANIMATED BACKGROUND */
+.bg-blobs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(60px);animation:blobmove 18s ease-in-out infinite}
+.blob1{width:420px;height:420px;background:var(--blob1);top:-100px;right:-100px;animation-delay:0s}
+.blob2{width:340px;height:340px;background:var(--blob2);bottom:-80px;left:-80px;animation-delay:-7s}
+.blob3{width:260px;height:260px;background:rgba(253,203,110,.09);top:40%;left:30%;animation-delay:-13s}
+@keyframes blobmove{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-40px) scale(1.05)}66%{transform:translate(-20px,30px) scale(.97)}}
+
+.wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:2rem 1.25rem 5rem;padding-bottom:calc(5rem + env(safe-area-inset-bottom))}
+nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:2.5rem;flex-wrap:wrap;gap:8px}
+.logo{font-size:15px;font-weight:700;color:var(--purple);letter-spacing:-.3px;cursor:pointer}
+.logo span{color:var(--t2);font-weight:400}
+.nav-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.nav-btn{font-family:'Inter',sans-serif;font-size:13px;padding:7px 16px;border:1.5px solid var(--border);border-radius:99px;background:var(--card);color:var(--t2);cursor:pointer;transition:all .2s}
+.nav-btn:hover{border-color:var(--pl);color:var(--purple)}
+.nav-btn.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.nav-btn.admin-btn{border-color:var(--amber);color:#b7860a}
+[data-theme="dark"] .nav-btn.admin-btn{color:var(--amber)}
+.dark-toggle{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--border);background:var(--card);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.user-chip{display:flex;align-items:center;gap:7px;padding:6px 12px;background:var(--card);border:1.5px solid var(--border);border-radius:99px;font-size:13px;color:var(--t2);cursor:pointer;transition:all .2s;position:relative}
+.user-chip:hover{border-color:var(--pl);color:var(--purple)}
+.user-dot{width:22px;height:22px;border-radius:50%;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.streak-chip{display:flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(253,203,110,.15);border:1.5px solid rgba(253,203,110,.4);border-radius:99px;font-size:13px;font-weight:600;color:#b7860a}
+[data-theme="dark"] .streak-chip{color:var(--amber);border-color:rgba(253,203,110,.3)}
+.screen{display:none}.screen.show{display:block}
+
+/* AUTH */
+.auth-wrap{min-height:80vh;display:flex;align-items:center;justify-content:center}
+.auth-card{background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:400px;box-shadow:var(--sh)}
+.auth-logo{text-align:center;margin-bottom:2rem}
+.auth-logo .auth-icon{font-size:40px;margin-bottom:.5rem}
+.auth-logo h2{font-size:22px;font-weight:700;color:var(--purple);margin-bottom:4px}
+.auth-logo p{font-size:14px;color:var(--t2)}
+.form-group{margin-bottom:1rem}
+.form-label{font-size:13px;font-weight:500;color:var(--t2);margin-bottom:6px;display:block}
+.form-input{width:100%;font-family:'Inter',sans-serif;font-size:15px;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--inp);color:var(--text);outline:none;transition:border .2s}
+.form-input:focus{border-color:var(--purple)}
+.auth-btn{width:100%;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;padding:13px;background:var(--purple);color:#fff;border:none;border-radius:10px;cursor:pointer;margin-top:.5rem;transition:all .2s}
+.auth-btn:hover{background:var(--pd);transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,92,231,.3)}
+.auth-err{font-size:13px;color:var(--red);margin-top:8px;text-align:center;min-height:18px}
+.auth-info{font-size:13px;color:var(--t2);text-align:center;margin-top:1rem;padding:10px;background:rgba(108,92,231,.06);border-radius:8px;line-height:1.6}
+
+/* HOME */
+.home-hero{text-align:center;padding:1rem 0 2rem}
+.welcome-badge{display:inline-block;font-size:13px;color:var(--purple);background:rgba(108,92,231,.1);padding:6px 14px;border-radius:99px;margin-bottom:1rem;font-weight:500}
+.home-hero h1{font-size:32px;font-weight:700;letter-spacing:-1px;line-height:1.2;margin-bottom:.75rem}
+.home-hero h1 em{font-style:normal;color:var(--purple)}
+.home-hero p{font-size:15px;color:var(--t2);line-height:1.7;max-width:460px;margin:0 auto 2rem}
+.streak-hero{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap}
+.streak-card{background:var(--card);border:1.5px solid rgba(253,203,110,.4);border-radius:14px;padding:.75rem 1.25rem;display:flex;align-items:center;gap:10px;box-shadow:var(--sh)}
+.streak-fire{font-size:28px;line-height:1}
+.streak-num{font-size:24px;font-weight:700;color:#b7860a;line-height:1}
+[data-theme="dark"] .streak-num{color:var(--amber)}
+.streak-lbl{font-size:12px;color:var(--t2)}
+.level-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:.75rem 1.25rem;display:flex;align-items:center;gap:10px;box-shadow:var(--sh)}
+.level-num{font-size:22px;font-weight:700;color:var(--purple);line-height:1}
+.level-bar-wrap{width:80px;height:6px;background:var(--bg2);border-radius:99px;overflow:hidden;margin-top:4px}
+.level-bar{height:100%;background:linear-gradient(90deg,var(--pl),var(--purple));border-radius:99px;transition:width .5s}
+.topic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:2rem}
+.topic-card{background:var(--card);border:2px solid transparent;border-radius:16px;padding:1.25rem 1rem;cursor:pointer;transition:all .2s;text-align:left;position:relative;overflow:hidden;box-shadow:var(--sh)}
+.topic-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--topic-color,var(--purple));opacity:0;transition:opacity .2s}
+.topic-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(108,92,231,.15)}
+.topic-card.sel{border-color:var(--topic-color,var(--purple))}
+.topic-card.sel::before{opacity:1}
+.topic-icon{font-size:26px;margin-bottom:.5rem}
+.topic-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.topic-count{font-size:12px;color:var(--t2)}
+.settings-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--card);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem;border:1px solid var(--border)}
+.settings-row label{font-size:13px;color:var(--t2);white-space:nowrap}
+.settings-row select{font-family:'Inter',sans-serif;font-size:14px;padding:7px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--inp);color:var(--text);outline:none}
+.btn-start{display:block;width:100%;padding:15px;background:var(--purple);color:#fff;border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-start:hover{background:var(--pd);transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,92,231,.3)}
+.btn-start:disabled{background:var(--bg2);color:var(--t2);cursor:not-allowed;transform:none;box-shadow:none}
+
+/* TEST */
+.test-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.q-num{font-size:13px;font-weight:600;color:var(--purple);letter-spacing:.5px}
+.timer-pill{display:flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--border);border-radius:99px;padding:6px 14px;font-size:14px;font-weight:600;color:var(--text)}
+.timer-pill.warn{border-color:var(--amber);color:var(--amber);background:rgba(253,203,110,.08)}
+.timer-pill.danger{border-color:var(--red);color:var(--red);background:rgba(225,112,85,.08)}
+.timer-dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.timer-pill.warn .timer-dot{background:var(--amber)}.timer-pill.danger .timer-dot{background:var(--red)}
+.prog-track{height:5px;background:var(--bg2);border-radius:99px;margin-bottom:2rem;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--pl),var(--purple));border-radius:99px;transition:width .5s ease}
+.q-card{background:var(--card);border-radius:16px;padding:2rem;margin-bottom:1.25rem;box-shadow:var(--sh);border:1px solid var(--border)}
+.q-topic-badge{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--purple);background:rgba(108,92,231,.1);padding:4px 10px;border-radius:99px;margin-bottom:1rem}
+.q-text{font-size:18px;font-weight:500;line-height:1.6}
+.explanation{margin-top:14px;padding:14px 16px;background:rgba(108,92,231,.06);border-left:3px solid var(--purple);border-radius:0 10px 10px 0;font-size:14px;color:var(--t2);line-height:1.6;display:none}
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;transition:all .2s}
+.opt:hover{border-color:var(--pl);background:rgba(162,155,254,.06)}
+.opt.correct{border-color:var(--green);background:rgba(0,184,148,.08)}
+.opt.wrong{border-color:var(--red);background:rgba(225,112,85,.08)}
+.opt-letter{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;border:1.5px solid var(--border);color:var(--t2);transition:all .2s}
+.opt.correct .opt-letter{background:var(--green);border-color:var(--green);color:#fff}
+.opt.wrong .opt-letter{background:var(--red);border-color:var(--red);color:#fff}
+.opt-text{font-size:15px;color:var(--text);line-height:1.5}
+.test-footer{display:flex;justify-content:flex-end;margin-top:1rem}
+.btn-next{font-family:'Inter',sans-serif;padding:12px 28px;background:var(--purple);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-next:hover{background:var(--pd)}
+.btn-next:disabled{background:var(--bg2);color:var(--t2);cursor:not-allowed}
+
+/* RESULT */
+.result-hero{text-align:center;padding:2rem 0 1.5rem}
+.score-circle{width:110px;height:110px;border-radius:50%;border:4px solid var(--pl);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 1.25rem;background:var(--card)}
+.score-big{font-size:30px;font-weight:700;color:var(--purple);line-height:1}
+.score-lbl{font-size:11px;color:var(--t2);margin-top:2px}
+.result-msg{font-size:22px;font-weight:600;margin-bottom:.5rem}
+.result-sub{font-size:15px;color:var(--t2)}
+.stat-row{display:flex;gap:12px;margin:1.5rem 0}
+.stat{flex:1;background:var(--card);border-radius:12px;padding:1rem;text-align:center;border:1px solid var(--border)}
+.stat-n{font-size:22px;font-weight:700}
+.stat-n.ok{color:var(--green)}.stat-n.bad{color:var(--red)}.stat-n.neu{color:var(--purple)}
+.stat-l{font-size:12px;color:var(--t2);margin-top:3px}
+
+/* AI ADVICE */
+.ai-advice-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:1.5rem;margin-top:1.5rem;box-shadow:var(--sh)}
+.ai-advice-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.ai-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pl));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ai-title{font-size:15px;font-weight:600;color:var(--text)}
+.ai-sub{font-size:12px;color:var(--t2)}
+.ai-body{font-size:14px;color:var(--text);line-height:1.8}
+.ai-loading{display:flex;align-items:center;gap:8px;color:var(--t2);font-size:14px}
+.ai-dot{width:7px;height:7px;border-radius:50%;background:var(--purple);animation:pulse 1.2s ease-in-out infinite}
+.ai-dot:nth-child(2){animation-delay:.2s}.ai-dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.ai-topic-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.75rem}
+.ai-tag{font-size:12px;padding:4px 10px;border-radius:99px;background:rgba(225,112,85,.1);color:var(--red);font-weight:500}
+.ai-section{margin-bottom:1rem}
+.ai-section-title{font-size:13px;font-weight:600;color:var(--purple);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.5px}
+.review-list{margin-top:1.5rem}
+.review-item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)}
+.review-item:last-child{border-bottom:none}
+.ri-icon{width:26px;height:26px;border-radius:50%;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.ri-ok{background:rgba(0,184,148,.15);color:var(--green)}.ri-bad{background:rgba(225,112,85,.15);color:var(--red)}
+.ri-q{font-size:14px;font-weight:500;margin-bottom:3px}
+.ri-ans{font-size:13px;color:var(--t2)}
+.ri-correct{color:var(--green);font-weight:500}
+.btn-row{display:flex;gap:10px;margin-top:2rem}
+.btn-outline{flex:1;font-family:'Inter',sans-serif;padding:13px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;font-size:15px;font-weight:500;color:var(--text);cursor:pointer;transition:all .2s}
+.btn-outline:hover{border-color:var(--pl);color:var(--purple)}
+.btn-filled{flex:1;font-family:'Inter',sans-serif;padding:13px;background:var(--purple);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-filled:hover{background:var(--pd)}
+
+/* LEADERBOARD */
+.lb-header{text-align:center;padding:1.5rem 0 1rem}
+.lb-header h2{font-size:24px;font-weight:700;margin-bottom:.4rem}
+.lb-header p{font-size:14px;color:var(--t2)}
+.lb-list{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem}
+.lb-item{display:flex;align-items:center;gap:14px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1rem 1.25rem;box-shadow:var(--sh);transition:all .2s}
+.lb-item.me{border-color:var(--purple);background:rgba(108,92,231,.05)}
+.lb-rank{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;border:2px solid var(--border)}
+.lb-rank.r1{background:linear-gradient(135deg,#ffd700,#ffb300);border-color:#ffd700;color:#7a5000}
+.lb-rank.r2{background:linear-gradient(135deg,#c0c0c0,#a0a0a0);border-color:#c0c0c0;color:#444}
+.lb-rank.r3{background:linear-gradient(135deg,#cd7f32,#a05a20);border-color:#cd7f32;color:#fff}
+.lb-avatar{width:36px;height:36px;border-radius:50%;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.lb-info{flex:1}
+.lb-name{font-size:14px;font-weight:600}
+.lb-meta{font-size:12px;color:var(--t2);margin-top:2px}
+.lb-score{font-size:18px;font-weight:700;color:var(--purple)}
+.lb-tcol{display:flex;flex-direction:column;align-items:flex-end}
+.tcol-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;margin-bottom:2px}
+.tcol-bronze{background:rgba(205,127,50,.15);color:#cd7f32}
+.tcol-silver{background:rgba(192,192,192,.2);color:#888}
+.tcol-gold{background:rgba(255,215,0,.2);color:#b8860b}
+[data-theme="dark"] .tcol-gold{color:var(--amber)}
+
+/* PROFILE */
+.profile-wrap{max-width:520px;margin:0 auto}
+.profile-header{display:flex;align-items:center;gap:1.5rem;background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:var(--sh)}
+.profile-avatar{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pl));color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;flex-shrink:0}
+.profile-name{font-size:20px;font-weight:700;margin-bottom:3px}
+.profile-role{font-size:13px;color:var(--t2)}
+.profile-level{display:flex;align-items:center;gap:8px;margin-top:.5rem}
+.profile-level-badge{font-size:12px;font-weight:600;padding:4px 12px;background:rgba(108,92,231,.1);color:var(--purple);border-radius:99px}
+.profile-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.pstat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center;box-shadow:var(--sh)}
+.pstat-n{font-size:22px;font-weight:700;color:var(--purple)}
+.pstat-l{font-size:12px;color:var(--t2);margin-top:3px}
+.section-title{font-size:16px;font-weight:600;margin-bottom:1rem;color:var(--text)}
+.activity-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:1.5rem}
+.act-cell{aspect-ratio:1;border-radius:3px;background:var(--bg2)}
+.act-cell.l1{background:rgba(108,92,231,.2)}.act-cell.l2{background:rgba(108,92,231,.45)}.act-cell.l3{background:rgba(108,92,231,.7)}.act-cell.l4{background:var(--purple)}
+.activity-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2);margin-bottom:1.5rem}
+.act-swatch{width:13px;height:13px;border-radius:2px}
+
+/* CHANGE PASSWORD */
+.pwd-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1.5rem;margin-top:1.5rem}
+.pwd-card h3{font-size:15px;font-weight:600;margin-bottom:1rem}
+.pwd-note{font-size:12px;color:var(--t2);margin-top:.5rem}
+
+/* ADMIN */
+.editor-header{margin-bottom:1.5rem}
+.editor-header h2{font-size:22px;font-weight:600;margin-bottom:.4rem}
+.editor-header p{font-size:14px;color:var(--t2)}
+.admin-badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;background:rgba(253,203,110,.2);border:1px solid rgba(253,203,110,.5);border-radius:99px;color:#b7860a;margin-left:8px;vertical-align:middle}
+[data-theme="dark"] .admin-badge{color:var(--amber)}
+.admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem}
+.atab{font-family:'Inter',sans-serif;font-size:13px;padding:7px 14px;border-radius:99px;border:1.5px solid var(--border);background:var(--card);color:var(--t2);cursor:pointer;transition:all .2s}
+.atab.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.editor-topic-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem}
+.etab{font-family:'Inter',sans-serif;font-size:13px;padding:7px 14px;border-radius:99px;border:1.5px solid var(--border);background:var(--card);color:var(--t2);cursor:pointer;transition:all .2s}
+.etab.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.q-editor-list{display:flex;flex-direction:column;gap:14px;margin-bottom:1.5rem}
+.qe-card{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:1.25rem;position:relative}
+.qe-num{font-size:11px;font-weight:600;color:var(--purple);margin-bottom:10px;letter-spacing:.5px;text-transform:uppercase}
+.qe-inp{width:100%;font-family:'Inter',sans-serif;font-size:14px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--inp);color:var(--text);outline:none;transition:border .2s;margin-bottom:10px;resize:vertical}
+.qe-inp:focus{border-color:var(--pl)}
+.opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.opt-inp-wrap{display:flex;align-items:center;gap:7px}
+.opt-radio{width:16px;height:16px;accent-color:var(--purple);cursor:pointer;flex-shrink:0}
+.opt-inp{flex:1;font-family:'Inter',sans-serif;font-size:13px;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);outline:none;transition:border .2s}
+.opt-inp:focus{border-color:var(--pl)}
+.qe-exp-inp{width:100%;font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--inp);color:var(--text);outline:none;transition:border .2s}
+.exp-label{font-size:12px;color:var(--t2);margin-bottom:5px}
+.delete-btn{position:absolute;top:12px;right:12px;background:none;border:none;cursor:pointer;font-size:16px;color:var(--t2);transition:color .2s}
+.delete-btn:hover{color:var(--red)}
+.add-q-btn{width:100%;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;padding:12px;border:2px dashed var(--border);border-radius:12px;background:transparent;color:var(--purple);cursor:pointer;transition:all .2s}
+.add-q-btn:hover{border-color:var(--pl);background:rgba(108,92,231,.04)}
+.save-btn{margin-top:1rem;width:100%;font-family:'Inter',sans-serif;padding:13px;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
+.save-btn:hover{filter:brightness(.9)}
+.no-access{text-align:center;padding:3rem 1rem;color:var(--t2)}
+.no-access .icon{font-size:48px;margin-bottom:1rem}
+.no-access h3{font-size:18px;font-weight:600;color:var(--text);margin-bottom:.5rem}
+.user-table{width:100%;border-collapse:collapse;font-size:13px}
+.user-table th{text-align:left;padding:8px 10px;font-size:11px;font-weight:600;color:var(--t2);letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.user-table td{padding:10px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.user-table tr:last-child td{border-bottom:none}
+.btn-sm{font-family:'Inter',sans-serif;font-size:12px;padding:5px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--t2);cursor:pointer;transition:all .2s}
+.btn-sm:hover{border-color:var(--pl);color:var(--purple)}
+.btn-sm.danger:hover{border-color:var(--red);color:var(--red)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.dot-active{background:var(--green)}.dot-blocked{background:var(--red)}
+
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.5rem}
+.dash-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:1.25rem;box-shadow:var(--sh)}
+.dash-card h3{font-size:13px;font-weight:600;color:var(--t2);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.5px}
+.dash-big{font-size:32px;font-weight:700;color:var(--purple)}
+.dash-sub{font-size:12px;color:var(--t2);margin-top:2px}
+.topic-bar-item{display:flex;align-items:center;gap:10px;margin-bottom:.6rem}
+.topic-bar-label{font-size:13px;min-width:80px}
+.topic-bar-track{flex:1;height:7px;background:var(--bg2);border-radius:99px;overflow:hidden}
+.topic-bar-fill{height:100%;border-radius:99px;transition:width .6s}
+.topic-bar-pct{font-size:12px;font-weight:600;color:var(--t2);min-width:35px;text-align:right}
+
+/* FOOTER */
+.site-footer{text-align:center;padding:2.5rem 1rem 1rem;border-top:1px solid var(--border);margin-top:3rem}
+.footer-title{font-size:15px;font-weight:600;color:var(--purple);margin-bottom:.4rem}
+.footer-sub{font-size:13px;color:var(--t2);margin-bottom:.75rem}
+.footer-phone{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:600;color:var(--text);background:var(--card);border:1.5px solid var(--border);padding:8px 18px;border-radius:99px;text-decoration:none;transition:all .2s}
+.footer-phone:hover{border-color:var(--purple);color:var(--purple)}
+
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:12px 24px;border-radius:99px;font-size:14px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100;white-space:nowrap}
+.toast.show{opacity:1}
+/* ===== MOBILE BOTTOM NAV ===== */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--card);border-top:1px solid var(--border);padding:8px 0;padding-bottom:calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px rgba(0,0,0,.1)}
+.bottom-nav-inner{display:flex;justify-content:space-around;align-items:center;max-width:480px;margin:0 auto}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 16px;border:none;background:none;cursor:pointer;color:var(--t2);font-family:'Inter',sans-serif;font-size:10px;font-weight:500;border-radius:12px;transition:all .2s;min-width:60px;-webkit-tap-highlight-color:transparent}
+.bn-item.active{color:var(--purple)}
+.bn-item .bn-icon{font-size:20px;line-height:1}
+.bn-item.active .bn-icon{transform:scale(1.1)}
+@media(max-width:600px){
+  .bottom-nav{display:block}
+  /* top nav-ийн menu-г нуу — bottom nav ашиглана */
+  #nav-menu{display:none!important}
+  .wrap{padding-bottom:calc(80px + env(safe-area-inset-bottom))!important}
+}
+@media(max-width:600px){
+  .wrap{padding:1rem .85rem 5rem}
+  nav{margin-bottom:1.5rem;gap:6px}
+  .logo{font-size:14px}
+  .nav-btn{font-size:12px;padding:6px 11px}
+  .dark-toggle{width:34px;height:34px;font-size:14px}
+  .user-chip{padding:5px 10px;font-size:12px}
+  .user-dot{width:20px;height:20px;font-size:10px}
+  .streak-chip{font-size:12px;padding:5px 10px}
+
+  /* Auth — utasnii screen deerh */
+  .auth-wrap{min-height:100svh;padding:1.5rem .5rem;align-items:flex-start;padding-top:15svh}
+  .auth-card{border-radius:16px;padding:2rem 1.25rem}
+  .auth-logo h2{font-size:20px}
+  .form-input{font-size:16px!important;padding:13px 14px} /* iOS zoom sergiilegee */
+
+  /* Home */
+  .home-hero{padding:.5rem 0 1.5rem}
+  .home-hero h1{font-size:24px;letter-spacing:-.5px}
+  .home-hero p{font-size:14px}
+  .streak-hero{gap:8px}
+  .streak-card,.level-card{padding:.65rem 1rem}
+  .streak-num,.level-num{font-size:20px}
+  .streak-fire{font-size:22px}
+  .topic-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .topic-card{padding:1rem .85rem}
+  .topic-icon{font-size:22px}
+  .topic-name{font-size:12px}
+  .topic-count{font-size:11px}
+  .settings-row{gap:8px;padding:.85rem 1rem}
+  .settings-row select{font-size:13px;padding:6px 10px}
+  .btn-start{font-size:15px;padding:13px}
+
+  .opts-grid{grid-template-columns:1fr}
+  /* Test */
+  .q-text{font-size:16px}
+  .opt{padding:12px 14px;gap:10px}
+  .opt-letter{width:28px;height:28px;font-size:12px}
+  .opt-text{font-size:14px}
+  .btn-next{padding:11px 22px;font-size:14px}
+
+  /* Result */
+  .score-circle{width:90px;height:90px}
+  .score-big{font-size:24px}
+  .result-msg{font-size:18px}
+  .stat-row{flex-wrap:wrap;gap:8px}
+  .stat{min-width:calc(50% - 4px)}
+  .stat-n{font-size:18px}
+  .btn-row{flex-direction:column}
+  .btn-outline,.btn-filled{padding:13px}
+
+  /* Leaderboard */
+  .lb-item{padding:.85rem 1rem;gap:10px}
+  .lb-rank{width:30px;height:30px;font-size:13px}
+  .lb-avatar{width:30px;height:30px;font-size:12px}
+  .lb-name{font-size:13px}
+  .lb-meta{font-size:11px}
+  .lb-score{font-size:16px}
+  .tcol-badge{font-size:10px;padding:2px 7px}
+
+  /* Profile */
+  .profile-header{flex-direction:column;text-align:center;gap:.85rem;padding:1.25rem}
+  .profile-avatar{width:60px;height:60px;font-size:24px}
+  .profile-name{font-size:18px}
+  .profile-stats{grid-template-columns:1fr 1fr;gap:8px}
+  .profile-level{justify-content:center}
+  .activity-grid{gap:3px}
+  .act-cell{border-radius:2px}
+
+  /* Dashboard */
+  .dash-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .dash-big{font-size:26px}
+  .dash-card{padding:1rem}
+
+  /* Admin */
+  .admin-tabs{gap:6px}
+  .atab{font-size:12px;padding:6px 12px}
+  .user-table{font-size:12px}
+  .user-table th,.user-table td{padding:7px 8px}
+  .btn-sm{font-size:11px;padding:4px 8px}
+
+  /* Footer */
+  .site-footer{padding:2rem .85rem 1rem;margin-top:2rem}
+  .footer-phone{font-size:13px}
+
+  /* AI card */
+  .ai-advice-card{padding:1.25rem}
+
+  /* Toast */
+  .toast{font-size:13px;padding:10px 18px;max-width:90vw;white-space:normal;text-align:center}
+}
+
+/* Extra small phones */
+@media(max-width:360px){
+  .topic-grid{grid-template-columns:1fr 1fr}
+  .nav-btn{font-size:11px;padding:5px 9px}
+  .home-hero h1{font-size:21px}
+  .dash-grid{grid-template-columns:1fr}
+}
+
+/* SET PASSWORD MODAL */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:9999;display:-webkit-flex;display:flex;-webkit-align-items:flex-start;align-items:flex-start;-webkit-justify-content:center;justify-content:center;padding:env(safe-area-inset-top,20px) 1rem 1rem;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal-box{background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:2rem 1.5rem;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,.3);margin-top:40px;flex-shrink:0}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:.4rem;color:var(--text)}
+.modal-sub{font-size:13px;color:var(--t2);margin-bottom:1.5rem}
+.modal-err{font-size:13px;color:var(--red);min-height:18px;margin-top:6px}
+
+/* CONFIRM MODAL */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem}
+.confirm-box{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:1.75rem 1.5rem;width:100%;max-width:340px;box-shadow:0 8px 40px rgba(0,0,0,.3);text-align:center}
+.confirm-icon{font-size:36px;margin-bottom:.75rem}
+.confirm-msg{font-size:16px;font-weight:600;color:var(--text);margin-bottom:.4rem}
+.confirm-sub{font-size:13px;color:var(--t2);margin-bottom:1.5rem}
+.confirm-btns{display:flex;gap:10px}
+.confirm-btns .btn-outline{flex:1;padding:12px;font-size:14px}
+.confirm-btns .btn-danger{flex:1;font-family:'Inter',sans-serif;padding:12px;background:var(--red);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.confirm-btns .btn-danger:hover{filter:brightness(.9)}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<div class="bg-blobs">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+</div>
+<div class="wrap">
+  <nav>
+    <div class="logo" onclick="isLoggedIn()&&showMain('home')">Нийгэм<span>·Соёл</span></div>
+    <div class="nav-right">
+      <div id="nav-menu" style="display:none;gap:8px">
+        <button class="nav-btn active" id="nav-home" onclick="showMain('home')">Нүүр</button>
+        <button class="nav-btn" id="nav-lb" onclick="showMain('leaderboard')">🏆</button>
+        <button class="nav-btn" id="nav-dash" onclick="showMain('dashboard')">📊</button>
+        <button class="nav-btn admin-btn" id="nav-editor" onclick="showMain('editor')" style="display:none">✏️ Admin</button>
+      </div>
+      <div class="streak-chip" id="streak-nav" style="display:none">🔥 <span id="streak-nav-num">0</span></div>
+      <button class="dark-toggle" id="dark-btn" onclick="toggleDark()" title="Dark/Light">🌙</button>
+      <div class="user-chip" id="user-chip" style="display:none" onclick="showMain('profile')">
+        <div class="user-dot" id="user-dot">?</div>
+        <span id="user-name-chip"></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- AUTH -->
+  <div class="screen show" id="auth">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <div class="auth-icon">🎓</div>
+          <h2>Нийгэм & Соёл</h2>
+          <p>10-р анги · Тест систем</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Нэвтрэх нэр</label>
+          <input class="form-input" id="auth-user" type="text" placeholder="Нэрээ оруулна уу..." autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Нууц үг / Урилгын код</label>
+          <input class="form-input" id="auth-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div class="auth-err" id="auth-err"></div>
+        <button class="auth-btn" onclick="doAuth()">Нэвтрэх →</button>
+        <div class="auth-info">🔒 Шинэ хэрэглэгч бол <strong>Admin-аас урилгын код</strong> авна уу.</div>
+        <div id="cloud-status" style="text-align:center;font-size:12px;margin-top:10px;color:var(--t2)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen" id="home">
+    <div class="home-hero">
+      <div class="welcome-badge" id="welcome-badge">👋 Сайн байна уу!</div>
+      <h1>10-р анги<br><em>Нийгэм & Соёл</em></h1>
+      <p>Сэдэв сонгоод тестэд орно уу. Мэдлэгээ шалгаж, оноогоо нэмэгдүүл!</p>
+    </div>
+    <div class="streak-hero">
+      <div class="streak-card">
+        <div class="streak-fire">🔥</div>
+        <div>
+          <div class="streak-num" id="streak-num">0</div>
+          <div class="streak-lbl">өдрийн streak</div>
+          <div class="streak-lbl">Хамгийн их: <span id="streak-max">0</span></div>
+        </div>
+      </div>
+      <div class="level-card">
+        <div style="font-size:26px">⭐</div>
+        <div>
+          <div style="display:flex;align-items:baseline;gap:4px">
+            <div class="level-num" id="level-num">1</div>
+            <div style="font-size:12px;color:var(--t2)">/ 100</div>
+          </div>
+          <div class="level-bar-wrap"><div class="level-bar" id="level-bar" style="width:0%"></div></div>
+          <div class="streak-lbl" id="level-lbl">Шинэхэн</div>
+        </div>
+      </div>
+    </div>
+    <div class="topic-grid" id="topic-grid"></div>
+    <div class="settings-row">
+      <label>Асуулт:</label>
+      <select id="q-count">
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+        <option value="15">15</option>
+        <option value="20">20</option>
+        <option value="all">Бүгд</option>
+      </select>
+      <label>Хугацаа:</label>
+      <select id="timer-sec">
+        <option value="10">10 сек</option>
+        <option value="15" selected>15 сек</option>
+        <option value="20">20 сек</option>
+        <option value="30">30 сек</option>
+        <option value="60">1 мин</option>
+        <option value="0">Хязгааргүй</option>
+      </select>
+    </div>
+    <button class="btn-start" id="start-btn" onclick="startTest()" disabled>Сэдэв сонгоно уу</button>
+  </div>
+
+  <!-- TEST -->
+  <div class="screen" id="test">
+    <div class="test-header">
+      <span class="q-num" id="q-num">1 / 10</span>
+      <div class="timer-pill" id="timer-pill"><span class="timer-dot"></span><span id="time-left">15</span></div>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="q-card">
+      <div class="q-topic-badge" id="q-topic-badge"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="explanation" id="explanation"></div>
+    </div>
+    <div class="options" id="options"></div>
+    <div class="test-footer"><button class="btn-next" id="btn-next" onclick="nextQ()" disabled>Дараагийн →</button></div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="result">
+    <div class="result-hero">
+      <div class="score-circle"><div class="score-big" id="r-score">0/0</div><div class="score-lbl">оноо</div></div>
+      <div class="result-msg" id="r-msg"></div>
+      <div class="result-sub" id="r-sub"></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-n ok" id="r-correct">0</div><div class="stat-l">Зөв</div></div>
+      <div class="stat"><div class="stat-n bad" id="r-wrong">0</div><div class="stat-l">Буруу</div></div>
+      <div class="stat"><div class="stat-n neu" id="r-time">0с</div><div class="stat-l">Хугацаа</div></div>
+      <div class="stat"><div class="stat-n neu" id="r-pct">0%</div><div class="stat-l">Хувь</div></div>
+    </div>
+    <div class="ai-advice-card" id="ai-advice-card">
+      <div class="ai-advice-header">
+        <div class="ai-avatar">🤖</div>
+        <div><div class="ai-title">AI Зөвлөгч</div><div class="ai-sub">Таны үр дүнд үндэслэн зөвлөгөө</div></div>
+      </div>
+      <div class="ai-body" id="ai-body">
+        <div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:4px">Дүн шинжилж байна...</span></div>
+      </div>
+    </div>
+    <div class="review-list" id="review-list"></div>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="showMain('home')">← Буцах</button>
+      <button class="btn-filled" onclick="restartTest()">Дахин оролцох</button>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="screen" id="leaderboard">
+    <div class="lb-header">
+      <h2>🏆 Шилдэг 10</h2>
+      <p>Тестэд хамгийн сайн үзүүлэлт гаргасан сурагчид</p>
+    </div>
+    <div class="lb-list" id="lb-list"></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="screen" id="dashboard">
+    <div style="margin-bottom:1.5rem">
+      <div style="font-size:22px;font-weight:700;margin-bottom:.3rem">📊 Хувийн Dashboard</div>
+      <div style="font-size:14px;color:var(--t2)">Хаана алдаж, юуг сайн мэдэж байгаагаа шалгаарай</div>
+    </div>
+    <div class="dash-grid" id="dash-grid"></div>
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:var(--sh)">
+      <h3 style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.5px">Сэдвийн алдаа</h3>
+      <div id="topic-bars"></div>
+    </div>
+    <div class="ai-advice-card" id="dash-ai-card" style="display:none">
+      <div class="ai-advice-header">
+        <div class="ai-avatar">🤖</div>
+        <div><div class="ai-title">AI Шинжилгээ</div><div class="ai-sub">Таны ерөнхий явцад үндэслэсэн зөвлөгөө</div></div>
+      </div>
+      <div class="ai-body" id="dash-ai-body"></div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen" id="profile">
+    <div class="profile-wrap">
+      <div class="profile-header" id="profile-header"></div>
+      <div class="profile-stats" id="profile-stats"></div>
+      <div class="section-title">📅 Идэвхжилт (7 хоног)</div>
+      <div class="activity-grid" id="activity-grid"></div>
+      <div class="activity-legend">
+        <span>Бага</span>
+        <div class="act-swatch" style="background:var(--bg2)"></div>
+        <div class="act-swatch act-cell l1"></div>
+        <div class="act-swatch act-cell l2"></div>
+        <div class="act-swatch act-cell l3"></div>
+        <div class="act-swatch act-cell l4"></div>
+        <span>Их</span>
+      </div>
+      <div class="section-title">🎯 Тэмцээний түүх</div>
+      <div id="contest-history" style="margin-bottom:1.5rem"></div>
+      <div class="pwd-card" id="pwd-section">
+        <h3>🔐 Нууц үг солих</h3>
+        <div class="form-group"><label class="form-label">Хуучин нууц үг</label><input class="form-input" id="old-pass" type="password" placeholder="••••••"></div>
+        <div class="form-group"><label class="form-label">Шинэ нууц үг</label><input class="form-input" id="new-pass" type="password" placeholder="••••••"></div>
+        <div class="auth-err" id="pwd-err"></div>
+        <button class="auth-btn" onclick="changePassword()" style="margin-top:.75rem">Солих</button>
+        <div class="pwd-note" id="pwd-note"></div>
+      </div>
+      <div style="margin-top:1rem">
+        <button class="btn-outline" onclick="logout()" style="width:100%;color:var(--red);border-color:var(--red)">Гарах</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDITOR / ADMIN -->
+  <div class="screen" id="editor">
+    <div id="editor-content"></div>
+  </div>
+</div>
+
+<div style="position:relative;z-index:1">
+  <div class="site-footer">
+    <div class="footer-title">Нийгэм & Соёл · 10-р анги</div>
+    <div class="footer-sub">Асуулт байвал холбоо барина уу</div>
+    <a class="footer-phone" href="tel:+97699639144">📞 9963-9144</a>
+  </div>
+</div>
+<div class="bottom-nav" id="bottom-nav" style="display:none">
+  <div class="bottom-nav-inner">
+    <button class="bn-item active" id="bn-home" onclick="showMain('home')"><span class="bn-icon">🏠</span>Нүүр</button>
+    <button class="bn-item" id="bn-lb" onclick="showMain('leaderboard')"><span class="bn-icon">🏆</span>Шилдэг</button>
+    <button class="bn-item" id="bn-dash" onclick="showMain('dashboard')"><span class="bn-icon">📊</span>Статистик</button>
+    <button class="bn-item" id="bn-profile" onclick="showMain('profile')"><span class="bn-icon">👤</span>Профайл</button>
+    <button class="bn-item" id="bn-admin" onclick="showMain('editor')" style="display:none"><span class="bn-icon">⚙️</span>Admin</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== CONFIG =====
+const ADMIN_USER='admin';
+const ADMIN_PASS='admin1234';
+const NAME_CHANGE_DAYS=15;
+
+// ===== TOPICS =====
+const TOPICS=[
+  {id:'niigem',    name:'Нийгэм & Давхраажилт', icon:'🏛️',color:'#6c5ce7'},
+  {id:'soyl',      name:'Соёл & Логик',          icon:'🎭',color:'#e17055'},
+  {id:'ediin',     name:'Эдийн засаг',            icon:'📊',color:'#00cec9'},
+  {id:'ulstor',    name:'Улс төр & Эрх зүй',     icon:'⚖️',color:'#0984e3'},
+  {id:'olon',      name:'Олон улсын харилцаа',    icon:'🌏',color:'#fd79a8'},
+  {id:'niigsudn',  name:'Нийгмийн судлал (Ерөнхий)', icon:'🔬',color:'#00b894'},
+];
+
+// ===== QUESTION DATA — 2025 ЭЕШ =====
+const DQ={
+  niigem:[
+    {q:"Хүн амын болон соёлын нөхөн үйлдвэрлэлээрээ өөрийн залгамж, тогтвортой чанарыг хангадаг, нэг нутаг дэвсгэр дээр амьдардаг, өөрийн зохион байгуулалт бүхий хүмүүсийн тогтвортой нэгдлийг юу гэж нэрлэдэг вэ?",opts:["Нийгмийн байр суурь","Нийгмийн тогтолцоо","Нийгэм","Нийгмийн бүтэц","Нийгмийн харилцаа"],ans:2,exp:"Нийгэм гэдэг нь нэг нутаг дэвсгэрт амьдарч, өөрийгөө тухайн нийгэмд харьяалуулдаг хүмүүсийн тогтвортой нэгдэл юм."},
+    {q:"Хүмүүс хэрэгцээгээ хангах, зөрчил маргаан, эмх замбараагүй байдалд хүргэхгүйн тулд үүргээ хуваарилан зохион байгуулалтад орж, хянаж, зохицуулах замаар амьдарч буй хамтын амьдралын хэлбэрийг юу гэж нэрлэдэг вэ?",opts:["Нийгэм","Нийгмийн тогтолцоо","Нийгмийн байр суурь","Нийгмийн бүтэц","Нийгмийн харилцаа"],ans:1,exp:"Нийгмийн тогтолцоо нь хүмүүсийн зохион байгуулалтад орж, хянаж, зохицуулах замаар амьдрах хамтын хэлбэр юм."},
+    {q:"Нэр хүнд ажил мэргэжлийн байр суурийн ялгарлыг нийгмийн давхраажилтын суурь шалтгаан гэж ямар эрдэмтэн үзсэн бэ?",opts:["Л.Уорнер","Т.Парсонс","Е.О.Райт","Э.Дюркгейм","Дэвис ба Мур"],ans:4,exp:"Дэвис ба Мур нар нэр хүнд, ажил мэргэжлийн байр суурийн ялгарлыг нийгмийн давхраажилтын суурь шалтгаан гэж үзсэн."},
+    {q:"'Марксын үзэл санаанд тулгуурлан, М.Веберийн үзэл санааг харгалзан нийгмийн давхраажилтыг судалсан' судлаач аль нь вэ?",opts:["Т.Парсонс","Е.О.Райт","Э.Дюркгейм","Л.Уорнер","Дэвис ба Мур"],ans:1,exp:"Е.О.Райт нь Марксын үзэл санаанд тулгуурлан, Веберийн үзэл санааг харгалзан нийгмийн давхраажилтыг судалсан."},
+    {q:"Нийгмийн давхраажилтын нэр хүндийн хэмжигдэхүүнд хамаарах ойлголтуудыг сонгоно уу. (1-Онцгой авьяас чадвар, 2-Олон танигдсан байдал, 3-Бусдад нөлөөлөх дагуулах, 4-Нөөцийг хуваарилахад хяналт тавих, 5-Шийдвэр гаргах, 6-Хөдөлмөрийн зах зээл дэх үнэ цэн)",opts:["1, 2, 6","2, 3, 4","1, 3, 5","1, 2, 3","2, 4, 5"],ans:0,exp:"Нэр хүндийн хэмжигдэхүүн нь онцгой авьяас чадвар (1), олон танигдсан байдал (2), хөдөлмөрийн зах зээл дэх үнэ цэн (6)-г хамардаг."},
+    {q:"Нийгмийн давхраажилтын эрх мэдлийн хэмжигдэхүүнд хамаарах ойлголтуудыг сонгоно уу. (1-Онцгой авьяас чадвар, 2-Шийдвэр гаргах, 3-Бусдад нөлөөлөх дагуулах, 4-Хөдөлмөрийн зах зээл дэх үнэ цэн, 5-Олон танигдсан байдал, 6-Нөөцийг хуваарилахад хяналт тавих)",opts:["3, 4, 5","1, 3, 5","2, 3, 6","3, 5, 6","1, 4, 5"],ans:2,exp:"Эрх мэдлийн хэмжигдэхүүн нь шийдвэр гаргах (2), бусдад нөлөөлөх (3), нөөцийг хуваарилахад хяналт тавих (6)-г агуулдаг."},
+    {q:"Нийгмийн давхраажилтын 'Каст' хэв маягийн тухай — 1-р хэсэг Б: 'Эртний Грек, Ромд байсан' гэдэг нь алдаа уу?",opts:["Тийм, энэ нь Азийн орнуудад хамаарна","Үгүй, зөв мэдэгдэл","Тийм, каст нь Их Британид байсан","Тийм, касттай ижил Феодализм Европт байсан","Үгүй, Грекд ч байсан"],ans:0,exp:"Каст нь Азийн орнуудын (ялангуяа Энэтхэг) давхраажилтын уламжлалт хэв маяг бөгөөд Эртний Грек, Ромд байгаагүй — энэ нь алдаа."},
+    {q:"'Харлигууд' буюу харьяат ард иргэд дотооддоо сайн, дунд, адаг гэсэн гурван хэсэгт хуваагдаж байжээ. Монголын түүхийн аль хэсэгт хамаарах вэ?",opts:["Социализмын үе","Манжийн эрхшээлийн үе","Юань улсаас хойш үе","XII-XIV зуунд","Их Монгол улсын үед"],ans:1,exp:"Харлигуудын гурван хэсэгт хуваагдах нь Манжийн эрхшээлийн үеийн нийгмийн бүтцэд хамаарна."},
+    {q:"Монголын нийгэм нь хошууны ноёд, тайж, лам нар — дунд давхраа: жирийн малчин ард — доод: гэрийн боолчид гэж хуваагдаж байсан нь монголын түүхийн аль хэсэгт хамаарах вэ?",opts:["XII-XIV зуунд","Юань улсаас хойш","Социализмын үе","Манжийн эрхшээлийн үе","Их Монгол улсын үед"],ans:3,exp:"Хошууны ноёд, тайж, лам нар — жирийн малчин ард — гэрийн боолчид гэсэн давхраажилт нь Манжийн эрхшээлийн үед оршин байсан."},
+    {q:"Нийгмийн давхраажилтын 'Анги' хэв маяг нь аль дараалалд алдаатай вэ? (1-р хэсэг В: 'Дундад зууны үед ноёрхож байсан')",opts:["1-р хэсэг В — алдаатай (Феодализмд хамаарна)","2-р хэсэг А — алдаатай","1-р хэсэг А — алдаатай","2-р хэсэг В — алдаатай","1-р хэсэг Б — алдаатай"],ans:0,exp:"Дундад зууны үед ноёрхсон нь Анги биш — Феодализм (хамааргын байдал) байсан. Анги нь аж үйлдвэрийн хувьсгалтай холбоотой орчин үеийн үзэгдэл."},
+  ],
+  soyl:[
+    {q:"'Соёл нь хүн нийгмийн гишүүн болохынхоо хувьд эзэмшдэг мэдлэг, итгэл үнэмшил, урлаг, ёс суртахуун, хууль, зан заншил болон бусад чадвар дадлуудыг багтаасан цогц бүхэл юм' гэж аль эрдэмтэн үзсэн бэ?",opts:["Э.Кассирер","Э.Тайлор","А.Гидденс","Р.Бенедикт","Э.Фромм"],ans:1,exp:"Э.Тайлор соёлын энэ тодорхойлолтыг өгсөн — соёл нь нийгмийн гишүүний эзэмшдэг бүх чадвар, дадлуудын цогц юм."},
+    {q:"Зөгий, шоргоолжны эд эсэнд шингэсэн үйлдэл хийх чадвар байдаг шиг хүнд төрөлхөөс заяадаггүй, ахмад үеэсээ залуу үе нь зориуд сурч мэдэж, өвлөх ёстой чадвар байдгийг соёл гэж тэмдэглэсэн эрдэмтэн аль нь вэ?",opts:["Р.Бенедикт","Э.Кассирер","Э.Тайлор","А.Гидденс","Ж.Локк"],ans:3,exp:"А.Гидденс соёлыг хүнд төрөлхөөс заяадаггүй, зориуд суралцах шаардлагатай зүйл гэж тодорхойлсон."},
+    {q:"Солонгосын соёл судлаачдын чиг үүргийг харгалзуулна уу: Бэк-Хён (зан төлөв, шашин), Чан-Ёол (олон улсын соёл), Ха-Кун (социализмын үеийн соёл), Ин-Су (эртний-орчин үеийн соёл), Кижа (статик-динамик), Минжүн (оюуны-биет соёл) — соёлын ямар шалгуурт тус бүр харгалзах вэ?",opts:["a=Нийгмийн хэв маяг: Ин-Су; b=Бүтээгч-хэрэглэгч: Чан-Ёол; c=Суурь үнэлэмж: Бэк-Хён; d=Сонголт: Ха-Кун","a=Нийгмийн хэв маяг: Ин-Су; b=Бүтээгч-хэрэглэгч: Кижа; c=Суурь үнэлэмж: Бэк-Хён; d=Сонголт: Минжүн","a=Нийгмийн хэв маяг: Чан-Ёол; b=Бүтээгч-хэрэглэгч: Кижа; c=Суурь үнэлэмж: Бэк-Хён; d=Сонголт: Ха-Кун","a=Нийгмийн хэв маяг: Чан-Ёол; b=Бүтээгч-хэрэглэгч: Минжүн; c=Суурь үнэлэмж: Бэк-Хён; d=Сонголт: Ин-Су","a=Нийгмийн хэв маяг: Ин-Су; b=Бүтээгч-хэрэглэгч: Бэк-Хён; c=Суурь үнэлэмж: Минжүн; d=Сонголт: Ха-Кун"],ans:0,exp:"Нийгмийн хэв маяг = Ин-Су (эртний-орчин үе); Бүтээгч-хэрэглэгч = Чан-Ёол (олон улсын соёл); Суурь үнэлэмж = Бэк-Хён (зан төлөв, шашин); Сонголт = Ха-Кун (социализмын үе)."},
+    {q:"'Дэлхийн бүх улс орнууд он солигдох мөчийг өөрийн үндэстний зан үйл, итгэл үнэмшил, ёс заншлын онцлогоор угтан хуучин оноо үдэж, шинэ оноо угтдаг' гэсэн нь соёлын аль ойлголтод хамаарах вэ?",opts:["Соёлын релятивизм","Түгээмэл шинж","Сонгодог соёл","Нэгдмэл шинж","Соёлын этноцентризм"],ans:1,exp:"Дэлхийн бүх нийгэмд байдаг нийтлэг зүйл (шинэ жилийг тэмдэглэх гэх мэт) нь соёлын түгээмэл шинжийг илэрхийлнэ."},
+    {q:"'Монгол соёлыг нэгтгэгч язгуур үнэлэмжид монгол аж төрөх ёс, ардын урлаг, ёс заншил, бусад үндэстнээс ялгарсан өвөрмөц төрхтэй' гэсэн нь соёлын аль ойлголтыг илэрхийлж байна вэ?",opts:["Түгээмэл шинж","Соёлын релятивизм","Сонгодог соёл","Нэгдмэл шинж","Соёлын этноцентризм"],ans:3,exp:"Монгол соёлын өвөрмөц, нэгдмэл байдлыг илэрхийлж байгаа тул энэ нь соёлын нэгдмэл шинжид хамаарна."},
+    {q:"Соёл өөрийн үнэт зүйлсээ хамгаалж, оршин тогтнолоо бэхжүүлэн баталгаажуулах чадварыг юу гэж нэрлэдэг вэ?",opts:["Соёлын дархлаа","Соёлын адилсал","Соёлын эрх чөлөө","Соёлын даяаршил","Соёлын үйлдвэрлэл"],ans:0,exp:"Соёлын дархлаа нь соёл өөрийн үнэт зүйлсээ хамгаалж, гаднын нөлөөнд тэсвэрлэх чадварыг хэлнэ."},
+    {q:"Соёлынх нь өвөрмөц байдалд гаднын нөлөө орж өөрчлөгдөх, эсвэл соёлын тулгалтаар устгах оролдлого гарах тохиолдолд хариу үйлдэл үзүүлэх чадварыг юу гэж нэрлэдэг вэ?",opts:["Соёлын дархлаа","Соёлын адилсал","Соёлын эрх чөлөө","Соёлын даяаршил","Соёлын үйлдвэрлэл"],ans:0,exp:"Соёлын дархлаа нь гаднын тулгалт, өөрчлөлтийн оролдлогод хариу үйлдэл үзүүлэх чадварыг агуулдаг."},
+    {q:"Логик хэмээх нэр томьёоны утга санааг аль нь зөв илэрхийлж байна вэ?",opts:["Ямар нэгэн үзэгдэл, үйл явцын дараалал, харилцааг илэрхийлнэ","Логикийг хүний оюун ухаантай холбон хэрэглэдэггүй","Бодол, эргэцүүллийн эмх цэгцийг гол шалгуур болгодоггүй","Зөв сэтгэхүйн хууль, дүрмүүдийн тухай шинжлэх ухаан биш","Үндэслэгээ, нотолгоо, няцаалтыг гол шалгуур болгодоггүй"],ans:0,exp:"Логик нь ямар нэгэн үзэгдэл, үйл явцын дараалал, харилцаа, холбоог илэрхийлдэг зөв сэтгэхүйн шинжлэх ухаан юм."},
+    {q:"Логик гэдэг нь ямар үгнээс гаралтай вэ?",opts:["Грек хэлний syntaxes (холбох, бүтэц)","Грек хэлний logos (үг, ойлголт)","Грек хэлний understanding (мэдлэг)","Грек хэлний policy (стратеги)","Грек хэлний topic (агуулга)"],ans:1,exp:"Логик гэдэг нь Грек хэлний logos (үг, ойлголт) гэдэг үгнээс гаралтай."},
+    {q:"Соёлын харилцан үйлчлэлийн хэлбэрүүдийн тухай — дараах жишээнүүдээс дутуу байгаа хэлбэрийг сонгоорой: (1) Япон-Монгол хүндэтгэлийн концерт, (2) Нэг хэсэг хүн амын соёлын амьдрал нөгөөтэй адилсах, ...",opts:["Тулга — халх, буриадын уламжлалыг нэгтгэж үр хүүхдүүдэд дамжуулсан","Дорж — Дарьганга сумын галт уулыг аялагчдад сурталчилсан","Ассир, Вавилон — хүчирхэг болохдоо нөгөөгөө эрхшээлдээ оруулдаг байсан","Япон-Монгол дипломат харилцааны 50 жилийн ойн 'Соёлын өвийн форум'","Нэг хэсэг хүн амын соёлын амьдрал нөгөөтэй адилсах үр дүн"],ans:2,exp:"Ассир, Вавилоны жишээ нь соёлын тулгалт — хүчирхэг улс нөгөөгөө эрхшээлдээ оруулах — гэсэн хэлбэрийг дүрсэлдэг. Энэ нь өгсөн жишээнүүдэд байхгүй дутуу хэлбэр юм."},
+  ],
+  ediin:[
+    {q:"Инфляцийг бууруулах төрөөс авч хэрэгжүүлэх үйл ажиллагаа аль нь вэ?",opts:["Бараа үйлчилгээний эрэлт муудна","Өндөр татвар хураах сонирхол бий болно","Бүтээгдэхүүний үнэ өснө","Үйлдвэрлэлийн өсөлтийг хангах","Эдийн засгийн дотоод тэнцвэрийг алдагдуулна"],ans:3,exp:"Инфляцийг бууруулахын тулд төр үйлдвэрлэлийн өсөлтийг хангах бодлого хэрэгжүүлдэг — нийлүүлэлт нэмэгдвэл үнэ тогтворждог."},
+    {q:"Чөлөөт эдийн засгийн тогтолцоонд аль нь хамаарахгүй вэ?",opts:["Үндсэн шинж нь хувийн өмч байдаг","Хоёрдогч шинж нь ашгийн хойноос хөөцөлддөг","Ихэнх материал нөөц баялаг нь нийтийн болон улсын өмчид байдаг","Үйлдвэрлэлийн хэрэгсэл нь хувь хүмүүсийн эзэмшилд байдаг","Төрөөс эдийн засгийн үйл явц дахь оролцоо маш бага байдаг"],ans:2,exp:"Чөлөөт эдийн засагт ихэнх нөөц баялаг ХУВИЙН өмчид байдаг, нийтийн/улсын өмчид биш — энэ нь хамаарахгүй зүйл."},
+    {q:"Хөрөнгийн зах зээл дээр хувьцаа худалдан авах эрэлт нэмэгдэж, хувьцааны үнэ өсөхийг юу гэж нэрлэдэг вэ?",opts:["Bear market","Bull market","Tiger market","Wolf market","Crocodile market"],ans:1,exp:"Bull market нь хувьцааны үнэ өсч буй зах зээлийг хэлнэ — буга дээшээ эвэр цохидог шиг зах зээл өсдөг."},
+    {q:"Хөрөнгийн зах зээл дээр хувьцаа зарах нь ихсэж нийлүүлэлт нэмэгдснээр хувьцааны үнэ буурахыг юу гэж нэрлэдэг вэ?",opts:["Bear market","Bull market","Tiger market","Wolf market","Dragon market"],ans:0,exp:"Bear market нь хувьцааны үнэ буурч буй зах зээлийг хэлнэ — баавгай дооруулан хумхидаг шиг зах зээл буурдаг."},
+    {q:"ДНБ-ий өсөлт: 2023 онд 29,600,0 тэрбум төгрөг, 2024 онд 37,800,0 тэрбум төгрөг байсан бол Абсолют цэвэр өсөлт болон Өсөлтийн хурдыг (дахинаар) тооцоол.",opts:["a=8,200,0; b=127.7","a=8,200,0; b=27.7","a=27.7; b=8,200,0","a=8,200,0; b=1.277","a=1.277; b=8,200,0"],ans:3,exp:"Абсолют цэвэр өсөлт = 37,800 - 29,600 = 8,200. Өсөлтийн хурд (дахинаар) = 37,800/29,600 = 1.277 дахин."},
+    {q:"ДНБ-ий өсөлт: 2023 онд 37,400,0 тэрбум, 2024 онд 44,800,0 тэрбум байсан бол Абсолют цэвэр өсөлт болон Өсөлтийн хурдыг (хувиар) тооцоол.",opts:["a=7,400,0; b=1.197","a=7,400,0; b=119.7","a=119.7; b=7,400,0","a=7,400,0; b=19.7","a=19.7; b=7,400,0"],ans:3,exp:"Абсолют цэвэр өсөлт = 44,800 - 37,400 = 7,400. Өсөлтийн хурд (хувиар) = (44,800/37,400)×100 - 100 = 19.7%."},
+    {q:"Монгол улсын гадаад худалдаа (А хувилбар): Экспорт 2022=5928.3, 2023=4845.9, 2024=5944.8; Импорт 2022=6586.5, 2023=5128.3, 2024=5159.7 — гурван оны тэнцлийг тодорхойлоорой.",opts:["2022: +658.2, 2023: +282.4, 2024: -785.1","2022: -658.2, 2023: -282.4, 2024: +785.1","2022: -658.2, 2023: +282.4, 2024: -785.1","2022: +12514.8, 2023: -9974.2, 2024: -11104.5","2022: -12514.8, 2023: +9974.2, 2024: +11104.5"],ans:1,exp:"Тэнцэл = Экспорт - Импорт. 2022: 5928.3-6586.5=-658.2; 2023: 4845.9-5128.3=-282.4; 2024: 5944.8-5159.7=+785.1."},
+    {q:"Монгол улсын гадаад худалдаа (А хувилбар): 2022=алдагдал, 2023=алдагдал, 2024=? — ашиг эсвэл алдагдал?",opts:["2022: алдагдал; 2023: алдагдал; 2024: ашиг","2022: ашиг; 2023: алдагдал; 2024: алдагдал","2022: алдагдал; 2023: ашиг; 2024: ашиг","2022: ашиг; 2023: ашиг; 2024: алдагдал","2022: ашиг; 2023: алдагдал; 2024: ашиг"],ans:0,exp:"2022: -658.2 (алдагдал), 2023: -282.4 (алдагдал), 2024: +785.1 (ашиг). Импорт > экспорт бол алдагдал, эсрэгээрээ ашиг."},
+    {q:"Татвар хураалтын ил тод байх зарчим гэж юу вэ?",opts:["Бүх нийтээр төлдөг, орлоготой шууд хамааралтай","Тодорхой үйл ажиллагааны хүмүүсээс авах татвар","Бүх хүн заавал төлөх, буцалтгүй хураамж","Татварын хэмжээ болон аргыг урьдчилан мэдэгдсэн байх","НӨТ (нэмэгдсэн өртгийн алба татвар)"],ans:3,exp:"Татварын ил тод байдлын зарчим нь татварын хэмжээ, хураах аргыг урьдчилан мэдэгдсэн байхыг шаарддаг."},
+    {q:"Ажиллах хүчний илүүдэл бий болсон цалингийн түвшин болон хөдөлмөрийн тоо хэмжээг тодорхойлоорой. (Цалин=3300 мянган нэгж, Нийлүүлэлт болон эрэлтийн уулзварт тавцантай үед)",opts:["Цалин=3300; Ажил хайгч=300; Ажиллах хүч=400","Цалин=3300; Ажил хайгч=400; Ажиллах хүч=300","Цалин=3300; Ажил хайгч=250; Ажиллах хүч=450","Цалин=3300; Ажил хайгч=450; Ажиллах хүч=300","Цалин=3300; Ажил хайгч=450; Ажиллах хүч=250"],ans:3,exp:"Цалин өндөр (3300) үед ажил хайгчийн тоо их (450), харин ажил олгогчийн эрэлт бага (300) болдог — ажиллах хүчний илүүдэл үүсдэг."},
+  ],
+  ulstor:[
+    {q:"'Улс төр бол эрх мэдэлд хүрэх, эрх мэдлийг тогтоон барьж байх ба ашиг хонжоо олохын тулд эрх мэдлийг ашиглан албадлагын арга хэрэгслийн цогц юм' гэж үздэг нь хэний үзэл баримтлал вэ?",opts:["Б.Макиавелли","Р.Даль","Ж.Локк","Ш.Монтескье","Д.Истон"],ans:0,exp:"Б.Макиавелли улс төрийг эрх мэдлийн хэрэгсэл гэж тодорхойлсон — орчин үеийн улс төрийн шинжлэх ухааны үндэслэгч."},
+    {q:"1990 оноос өмнөх (социализмын үеийн) төрийн бодлогод аль нь хамаарах вэ?",opts:["Бизнесийн төлөвлөгөөгөөр нийгмээ хөгжүүлэх","Олон ургалч үзлийг хүлээн зөвшөөрч, олон намын тогтолцоог чухалчлах","Сонгох, сонгогдох ардчилсан зарчмыг кампани болгох","Хувийн өмчтэй байхыг зөвшөөрч, үр шимийг нь эдлэх","Улс түмний харилцан ашигтай хамтын ажиллагааг эрхэмлэх"],ans:4,exp:"1990-өөс өмнө нэг намын тогтолцооны үед улс түмний хамтын ажиллагааг эрхэмлэх бодлого давамгайлдаг байсан."},
+    {q:"Монгол улс түүхэндээ хэдээс хэдэн оны хооронд зөвхөн 'ангийн' сонгуультай байсан бэ?",opts:["1924-1990 он","1924-1951 он","1924-1992 он","1924-1960 он","1924-1940 он"],ans:1,exp:"Монгол улс 1924-1951 оны хооронд зөвхөн 'ангийн' сонгуультай байсан — ажилчны ангийн төлөөлөл сонгогддог байсан."},
+    {q:"Монгол улс хэдэн оноос бүх нийтийн, тэгш, шууд болон санал нууцаар хураах зарчмын үндсэн дээр сонгууль зохион байгуулах болсон бэ?",opts:["1990 он","1911 он","1924 он","1951 он","1992 он"],ans:3,exp:"Монгол улс 1951 оноос эхлэн бүх нийтийн, тэгш, шууд, нууц сонгуулийн зарчимд шилжсэн."},
+    {q:"Монгол улс 1990 оноос өмнө намын ямар тогтолцоотой байсан бэ?",opts:["Олон намын тогтолцоо","Хоёр намын тогтолцоо","Нэг намын тогтолцоо","Аядуу плюрал тогтолцоо","Ноёрхогч намын тогтолцоо"],ans:2,exp:"1990-өөс өмнө МАХН нэг намын тогтолцоог баримталж байсан."},
+    {q:"АНУ, Их Британи нар намын ямар тогтолцоотой вэ?",opts:["Хоёр намын тогтолцоо","Нэг намын тогтолцоо","Олон намын тогтолцоо","Аядуу плюрал тогтолцоо","Ноёрхогч намын тогтолцоо"],ans:0,exp:"АНУ (Ардчилагч, Бүгд найрамдагч) болон Их Британи (Лейбор, Консерватив) нар хоёр намын тогтолцоотой."},
+    {q:"'Common Law', 'Шүүгчийн эрх зүй' гэх зэргээр нэрлэж заншсан эрх зүйн бүл аль вэ?",opts:["Англи-Америкийн эрх зүйн бүл","Ром-Германы буюу эх газрын эрх зүйн бүл","Заншлын эрх зүйн бүл","Холимог болон хосолмол эрх зүйн бүл","Шашны эрх зүйн бүл"],ans:0,exp:"Common Law буюу Шүүгчийн эрх зүй нь Англи-Америкийн эрх зүйн бүлд хамаарна."},
+    {q:"Гуравдугаар үед эрх зүйн хэм хэмжээг тэргүүн зэрэгт тавьж байсан бүл аль вэ?",opts:["Англи-Америкийн эрх зүйн бүл","Холимог болон хосолмол эрх зүйн бүл","Заншлын эрх зүйн бүл","Ром-Германы буюу эх газрын эрх зүйн бүл","Шашны эрх зүйн бүл"],ans:3,exp:"Гуравдугаар үед Ром-Германы буюу эх газрын эрх зүйн бүл (кодчилогдсон хууль) эрх зүйн хэм хэмжээг тэргүүн зэрэгт тавьж байсан."},
+    {q:"Эрх зүйн хэм хэмжээний дотоод хэлбэр (логик бүтэц) аль нь вэ?",opts:["Гипотез; Диспозици; Санкц","Хэм хэмжээний заалт; Институт; Эрх зүйн бүрдэл","Албан хэм хэмжээ; Албан бус хэм хэмжээ; Хэм хэмжээ","Материаллаг эрх зүй; Процессын эрх зүй; Шатлалын онол","Эрх зүйн харилцааны объект; Хууль зүйн факт; Агуулга"],ans:0,exp:"Эрх зүйн хэм хэмжээний дотоод логик бүтэц: Гипотез (нөхцөл), Диспозици (эрх үүрэг), Санкц (хариуцлага)."},
+    {q:"2025/05/20-нд болсон хэргийн тухай иргэн С 2025/06/02-нд захиргааны байгууллагад гомдол гаргасан нь хугацаа хэтэрсэнд тооцогдох уу?",opts:["Тооцогдоно — 6-р сарын 2 хэтэрсэн","Тооцогдохгүй — 14 хоногийн дотор гаргах ёстой тул хэтэрсэн","Тооцогдохгүй — 30 хоногийн дотор гаргасан тул хугацаа хэтрээгүй","Тооцогдоно — гэрчгүй гомдол гаргасан тул","Тооцогдоно — гуравдагч этгээдгүй гомдол гаргасан тул"],ans:2,exp:"Захиргааны хэргийн тухай хуулиар иргэн эрх зөрчигдснөөс хойш 30 хоногийн дотор гомдол гаргах ёстой. 5-р сарын 20-оос 6-р сарын 2 — 13 хоног тул хугацаа хэтрээгүй."},
+  ],
+  olon:[
+    {q:"НҮБ-ыг бий болгох санаа хэзээнээс эхэлсэн бэ?",opts:["1939-1945 оны ДХII дайны үеийн хүнд бэрх өдрүүдэд","Сирусийн бортого бий болсон үед (боолуудыг чөлөөлсөн үеэс)","ДХI дайны дараа хүний эрх, эрх чөлөөг хангаж дээдлэхийн тулд","'Магна Харта' баталгаажуулснаар","Хүйтэн дайны төгсгөл үеэс"],ans:0,exp:"НҮБ-ыг 1939-1945 оны Дэлхийн II дайны хүнд бэрх өдрүүдэд байгуулах санаа төрж, 1945 онд байгуулагдсан."},
+    {q:"НҮБ гэж нэрлэх болсон шалтгаан аль нь вэ?",opts:["АНУ-ын ерөнхийлөгч Д.Рузвельтийн дурсгалыг хүндэтгэж","Боолуудыг чөлөөлсөн цаг үеийг хүндэтгэж","АНУ-ын тусгаар тогтнолын тунхаглалыг хүндэтгэж","Сирусийн бортогод дурдсан боолуудыг чөлөөлснийг хүндэтгэж","'Магна Харта' Жон хааны дурсгалыг хүндэтгэж"],ans:0,exp:"НҮБ (United Nations) гэсэн нэрийг АНУ-ын ерөнхийлөгч Рузвельт санал болгосон бөгөөд түүний дурсгалыг хүндэтгэж хэрэглэх болсон."},
+    {q:"Олон улсын харилцааны улс бус оролцогчдод аль нь хамаарах вэ?",opts:["Бага улс","НҮБ","Их гүрэн","Дунд улс","Бүрэн эрхт улс"],ans:1,exp:"НҮБ нь улс бус оролцогч — олон улсын байгууллага юм. Бага, дунд, их гүрэн, бүрэн эрхт улс бол улс оролцогч."},
+    {q:"Бүс нутгийн түвшний байгууллагад аль нь хамаарах вэ?",opts:["Исламын улсуудын чуулга уулзалт","ОУ-ын гаалийн шүүх","НҮБ","ШХАБ","Эвсэлд үл нэгдэх хөдөлгөөн"],ans:3,exp:"ШХАБ (Шанхайн хамтын ажиллагааны байгууллага) нь Ази-Номхон далайн бүс нутгийн байгууллага юм."},
+    {q:"Монгол улсын хоёр хөрштэйгээ харилцах зарчмуудыг олоорой: (1-сайн хөршийн, 2-тэнцвэртэй найрсаг, 3-стратегийн түншлэлийн, 4-хамтын ажиллагааны, 5-олон тулгуурт, 6-улс төрийн)",opts:["1,2,3,5,6","1,2,3,4,6","2,3,4,5,6","1,2,4,5,6","1,2,3,4,5"],ans:4,exp:"Монгол улсын хоёр хөрштэйгээ харилцах зарчим нь: сайн хөршийн (1), тэнцвэртэй найрсаг (2), стратегийн түншлэлийн (3), хамтын ажиллагааны (4), олон тулгуурт (5) юм."},
+    {q:"Гадаад харилцаа, хамтын ажиллагаандаа нөөц бололцоог аль болох бүрэн дайчлан зохион байгуулах нь ОУ-ын хамтын нийгэмлэг дэх оролцооны аль зарчимд хамаарах вэ?",opts:["Прагматик байх","Олон тулгуурт байх","Тэнцвэртэй байх","Үндэсний эрх ашигт нийцсэн байх","Найрсаг байх"],ans:0,exp:"Нөөц бололцоог бүрэн дайчлан зохион байгуулах нь практик үр дүнд чиглэсэн прагматик байх зарчимд хамаарна."},
+    {q:"Монгол улс нь олон улс гүрэнтэй хамтран ажиллах гадаад харилцааг олон хэлбэрээр явуулах нь ОУ-ын хамтын нийгэмлэг дэх оролцооны аль зарчимд хамаарах вэ?",opts:["Олон тулгуурт байх","Прагматик байх","Тэнцвэртэй байх","Үндэсний эрх ашигт нийцсэн байх","Найрсаг байх"],ans:0,exp:"Олон гүрэнтэй олон хэлбэрээр хамтрах нь олон тулгуурт байх зарчимд нийцнэ."},
+    {q:"2018 оны байдлаар Монгол улстай 'стратегийн түншлэлтэй' улсуудыг олоорой: (1-ОХУ, 2-Япон, 3-Энэтхэг, 4-БНСУ, 5-Герман, 6-Канад)",opts:["1,3,6","1,2,3","2,3,5","2,5,6","1,3,5"],ans:1,exp:"2018 оны байдлаар Монгол улс ОХУ (1), Япон (2), Энэтхэг (3)-тай стратегийн түншлэлтэй байсан."},
+    {q:"2018 оны байдлаар Монгол улстай 'иж бүрэн түншлэлтэй' улсуудыг олоорой: (1-Турк, 2-БНХАУ, 3-Австрали, 4-БНСУ, 5-Герман, 6-Энэтхэг)",opts:["2,3,5","1,3,6","1,4,5","2,5,6","1,3,5"],ans:0,exp:"2018 оны байдлаар Монгол улс БНХАУ (2), Австрали (3), Герман (5)-тай иж бүрэн түншлэлтэй байсан."},
+    {q:"Монгол улсын 'Гуравдагч хөрш' орнуудын хамтын үйл ажиллагаа — АНУ, Япон, БНСУ-ын хамтын ажиллагааг зөв харгалзуулна уу: a=АНУ, b=Япон, c=БНСУ; 1=1990 онд дипломат харилцаа, 1991 онд элчин яам нээсэн; 2=350 гаруй залуу Фулбрайтын тэтгэлэгт хамрагдсан; 3=Коосэн сургалтын хөтөлбөр хэрэгжүүлж байна",opts:["a=3; b=1; c=2","a=2; b=1; c=3","a=1; b=3; c=2","a=3; b=2; c=1","a=2; b=3; c=1"],ans:1,exp:"АНУ — Фулбрайтын тэтгэлэг (a=2); Япон — 1990 онд дипломат харилцаа (b=1); БНСУ — Коосэн сургалт (c=3)."},
+  ],
+  niigsudn:[
+    {q:"Дараах ойлголтуудаас тоон судалгаанд аль нь хамаарах вэ? (1-Мэдээллийн утгыг ойлгохаар зорино, 2-Стандарчлагдсан загварын дагуу нэгтгэн бичнэ, 3-Мэдээлэл цуглуулах нэг ижил горимоор явагдана, 4-Хэмжилт мэдээлэл цуглуулах явцад хийгдэнэ, 5-Баримт бичиг, ажиглагдсан зан үйл, үг яриа байна)",opts:["2, 4","2, 3","1, 2","1, 5","3, 4"],ans:0,exp:"Тоон судалгаа нь стандарчлагдсан загварын дагуу нэгтгэн бичнэ (2) ба хэмжилт мэдээлэл цуглуулах явцад хийгдэнэ (4) гэсэн шинжтэй."},
+    {q:"Дараах ойлголтуудаас чанарын судалгаанд аль нь хамаарах вэ? (1-Стандарчлагдсан загварын дагуу нэгтгэн бичнэ, 2-Таамаглалыг шалгахаар зорино, 3-Цөөн хувьсагч хоорондын хамаарал шалгана, 4-Стандарчлагдсан загварын дагуу бичих албагүй, 5-Хэмжилт мэдээлэл цуглуулах явцад хийгдэнэ)",opts:["1, 4","2, 5","2, 4","3, 4","4, 5"],ans:2,exp:"Чанарын судалгаа нь таамаглалыг шалгахаар зорино (2) ба стандарчлагдсан загварын дагуу бичих албагүй (4) гэсэн шинжтэй."},
+    {q:"Дедукцийн аргын зөв эрэмбийг сонго: a=ажиглалт/мэдээлэл цуглуулах, b=нэгтгэн дүгнэх, c=онолоос асуулт, d=онолын хүрээний таамаглал, e=туршилт/дүн шинжилгээ",opts:["1c→2a→3d→4b→5e","1c→2d→3a→4b→5e","1a→2c→3d→4b→5e","1a→2c→3d→4e→5b","1c→2d→3a→4e→5b"],ans:1,exp:"Дедукц: Онолоос асуулт (c) → Онолын таамаглал (d) → Ажиглалт/мэдээлэл (a) → Нэгтгэн дүгнэх (b) → Туршилт (e)."},
+    {q:"Индукцийн аргын зөв эрэмбийг сонго: a=онол, b=асуулт, c=нэгтгэн дүгнэх, d=туршилт/дүн шинжилгээ, e=ажиглалт/мэдээлэл цуглуулалт",opts:["1b→2d→3e→4a→5c","1b→2e→3d→4a→5c","1a→2b→3e→4d→5c","1e→2d→3b→4a→5c","1b→2e→3d→4c→5a"],ans:1,exp:"Индукц: Асуулт (b) → Ажиглалт (e) → Дүн шинжилгээ (d) → Онол (a) → Нэгтгэн дүгнэх (c)."},
+    {q:"Т.Билтоны 'Орчин үеийн буюу аж үйлдвэржсэн нийгэм'-ийн шинжүүдэд хамаарахыг олоорой: 1-Нийгэм-хамт олны зарчимд нийцүүлэн амьдардаг, 2-Аж үйлдвэр эдийн засгийн гол талбар, шинжлэх ухаан тэргүүлэх үүрэгтэй, 3-Гол талбар нь өрх гэр, гэр бүлийн хүрээ, 4-Олон нийтийн байгууллагын хүрээнд олон янзын үүрэг, 5-Уламжлалт бүтэц, шашны итгэл үнэмшлийн тогтолцоотой",opts:["1, 3","4, 5","2, 3","2, 5","2, 4"],ans:4,exp:"Орчин үеийн нийгэмд аж үйлдвэр, шинжлэх ухаан тэргүүлэх (2) ба олон нийтийн байгууллагын хүрээнд олон талт харилцаа (4) байдаг."},
+    {q:"Т.Билтоны 'Уламжлалт буюу аж үйлдвэржилтээс өмнөх үе'-ийн нийгмийн шинжүүдэд хамаарахыг олоорой: 1-Шинжлэх ухааны итгэл үнэмшил тэргүүлэх, 2-Нийгэм-хамт олны зарчимд нийцүүлэн амьдардаг, 3-Гол талбар нь өрх гэр, гэр бүлийн хүрээ, 4-Хувийн хүсэл зоригийг хэрэгжүүлэхийг эрхэмлэдэг, 5-Олон нийтийн байгууллагын хүрээнд олон талт харилцаа",opts:["2, 5","3, 4","1, 5","2, 3","2, 4"],ans:2,exp:"Уламжлалт нийгэмд нийгэм-хамт олны зарчим (2) ба гол талбар нь гэр бүл (3) байдаг шинж ноёлдог."},
+    {q:"Нийгмийн хэв маягуудын хүснэгтэд алдаатай зүйлийг тодорхойлоорой. 'Цэцэрлэг аж ахуйн нийгэм — 2-р багана: Ураг төрлийн холбоог халж олон төрлийн бүлгээс тогтох нийгэм' гэж бичсэн нь зөв үү?",opts:["Алдаатай — Цэцэрлэг аж ахуйн нийгэм нь ураг төрлийн холбоонд СУУРИЛСАн нийгэм","Зөв — ураг төрлийн холбоог халдаг","Алдаатай — энэ нь газар тариалангийн нийгэмд хамаарна","Зөв — холбоог хальдаг нь онцлог шинж","Алдаатай — энэ нь аж үйлдвэржсэн нийгэмд хамаарна"],ans:0,exp:"Цэцэрлэг аж ахуйн нийгэм нь ураг төрлийн холбоонд суурилсан бөгөөд ураг төрлийн холбоог ХАЛДАГГҮЙ — энэ нь алдаа."},
+    {q:"Газар тариалангийн нийгэм: '2-р багана — Мал амьтныг ажиллах хүч болгон хэрэглэдэг тул нэмүү өртөг бүтээх түвшинд хүрээгүй' гэж бичсэн нь зөв үү?",opts:["Алдаатай — мал ашиглах нь нэмүү өртөг бүтээдэг","Зөв — мал ашиглах нь нэмүү өртөг бүтээхгүй","Алдаатай — газар тариалангийн нийгэм нэмүү өртөг бүтээдэг","Зөв — зөвхөн аж үйлдвэр нэмүү өртөг бүтээдэг","Алдаатай — нэмүү өртөг зөвхөн худалдааны нийгэмд бүтээгддэг"],ans:2,exp:"Газар тариалангийн нийгэм нь мал ашиглан, анжисны хөдөлмөрийг ашиглан нэмүү өртөг бүтээдэг — 'нэмүү өртөг бүтээхгүй' гэдэг нь алдаа."},
+    {q:"Ойлголтын тухай — 1-р хэсэг А: 'Судлагдаж буй юмс үзэгдлийн онцлох гол шинжид нь хамаардаггүй сэтгэлгээ юм' гэдэг нь зөв үү?",opts:["Алдаатай — ойлголт нь гол шинжид ХАМААРдаг сэтгэлгээ","Зөв — гол шинжид хамаардаггүй","Алдаатай — ойлголт нь тухайн зүйлийн бүх шинжийг агуулдаг","Зөв — ойлголт нь аль ч шинжид хамаардаггүй","Алдаатай — энэ нь бодомжийн тодорхойлолт"],ans:0,exp:"Ойлголт нь судлагдаж буй юмс үзэгдлийн онцлох ГОЛ ШИНЖИЙГ агуулдаг сэтгэлгээ юм — гол шинжид хамаардаггүй гэдэг нь алдаа."},
+    {q:"Ойлголтын тухай — 1-р хэсэг Б: 'Уг ойлголтоор сэтгэгдэж байгаа юмс үзэгдлийн ангийг ойлголтын агуулга гэнэ' гэдэг нь зөв үү?",opts:["Алдаатай — ангийг БАГТААМЖ гэдэг, гол шинжийг АГУУЛГА гэдэг","Зөв — ангийг агуулга гэдэг","Алдаатай — ангийг зөвхөн тоо хэмжээгээр тодорхойлдог","Зөв — ойлголтын агуулга нь ангийг хэлнэ","Алдаатай — агуулга нь ойлголтын хэрэглэгдэх хүрээ"],ans:0,exp:"Ойлголтын АГУУЛГА нь юмс үзэгдлийн онцлох гол шинжүүд; БАГТААМЖ нь уг ойлголтоор сэтгэгдэх юмс үзэгдлийн анги юм — алдаа нь агуулга/багтаамжийг андуурсан."},
+  ],
+};
+
+// ===== STATE =====
+let allQ=JSON.parse(JSON.stringify(DQ));
+let selTopics=[],testQueue=[],cur=0,score=0,timerInt=null,timeLeft=15,totalTime=0,userAns=[];
+let timerSec=15,editorTopic=TOPICS[0].id,currentUser=null,adminSection='users';
+
+// ===== STORAGE HELPERS =====
+// ===== FIREBASE CONFIG =====
+// Realtime Database-ийн REST хаяг (niigem-test project, us-central1 бүс).
+// Хэрэв cloud хадгалалт ажиллахгүй бол:
+//   Firebase Console → Realtime Database → Rules дотор унших/бичих эрхийг шалга.
+const FIREBASE_CONFIG={
+  databaseURL:'https://niigem-test-default-rtdb.firebaseio.com'
+};
+
+// ===== CLOUD STORAGE (Firebase) =====
+// Энгийн fetch-based Firebase REST API — SDK шаардлагагүй
+async function fbGet(path){
+  try{
+    const r=await fetch(FIREBASE_CONFIG.databaseURL+'/'+path+'.json');
+    if(!r.ok) return {ok:false,data:null};
+    return {ok:true,data:await r.json()};
+  }catch(e){return {ok:false,data:null};}
+}
+async function fbSet(path,data){
+  try{
+    const r=await fetch(FIREBASE_CONFIG.databaseURL+'/'+path+'.json',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    _cloudOk=r.ok;
+    return r.ok;
+  }catch(e){_cloudOk=false;return false;}
+}
+async function fbUpdate(path,data){
+  try{
+    const r=await fetch(FIREBASE_CONFIG.databaseURL+'/'+path+'.json',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    _cloudOk=r.ok;
+    return r.ok;
+  }catch(e){_cloudOk=false;return false;}
+}
+
+// ===== LOCAL CACHE (for sync UI) =====
+var _cache={users:{},codes:[],stats:{},streak:{},pwdmeta:{},q:{},lb:{}};
+var _loaded=false;
+var _cloudOk=false; // Firebase холбогдсон эсэх (true=cloud, false=зөвхөн local)
+
+async function loadAllData(){
+  // 1) Cloud-оос татах оролдлого
+  const [ru,rc,rq,rlb]=await Promise.all([fbGet('users'),fbGet('codes'),fbGet('questions'),fbGet('leaderboard')]);
+
+  // 2) Local хуулбарууд (cloud амжилтгүй бол найдвартай нөөц эх үүсвэр)
+  var lu={},lc=[],lq={};
+  try{lu=JSON.parse(localStorage.getItem('nt_users')||'{}');}catch(e){}
+  try{lc=JSON.parse(localStorage.getItem('nt_codes')||'[]');}catch(e){}
+  try{lq=JSON.parse(localStorage.getItem('nt_q')||'{}');}catch(e){}
+
+  _cloudOk = ru.ok && rc.ok && rq.ok;
+
+  // ---- USERS (бүртгэл) ----
+  if(ru.ok){
+    var cu=ru.data||{};
+    if(Object.keys(cu).length===0 && Object.keys(lu).length>0){
+      // Cloud хоосон ч энэ төхөөрөмж дээр бүртгэл бий → local-оо cloud руу нүүлгэнэ
+      _cache.users=lu; fbSet('users',lu);
+    }else{
+      _cache.users=cu;
+    }
+  }else{
+    _cache.users=lu; // Cloud холбогдоогүй → local ашиглана (хуучин бүртгэл УСТГАХГҮЙ)
+  }
+
+  // ---- CODES (урилгын код) ----
+  if(rc.ok){
+    var cc=rc.data, ccArr;
+    if(cc&&typeof cc==='object'&&!Array.isArray(cc)) ccArr=Object.values(cc);
+    else ccArr=cc||[];
+    if(ccArr.length===0 && lc.length>0){
+      _cache.codes=lc;
+      var obj={}; lc.forEach(function(it,i){obj['c'+i]=it;}); fbSet('codes',obj);
+    }else{
+      _cache.codes=ccArr;
+    }
+  }else{
+    _cache.codes=lc;
+  }
+
+  // ---- QUESTIONS (асуултууд) ----
+  if(rq.ok){
+    var cq=rq.data||{};
+    if(Object.keys(cq).length===0 && Object.keys(lq).length>0){
+      _cache.q=lq; fbSet('questions',lq);
+    }else{
+      _cache.q=cq;
+    }
+  }else{
+    _cache.q=lq;
+  }
+
+  // ---- LEADERBOARD (бүх хэрэглэгчийн оноо, cloud) ----
+  _cache.lb = rlb.ok ? (rlb.data||{}) : {};
+
+  _loaded=true;
+}
+
+// ===== SYNC WRAPPERS =====
+// Users — cloud shared
+function getUsers(){return _cache.users||{};}
+function saveUsers(u){
+  _cache.users=u;
+  fbSet('users',u);
+  localStorage.setItem('nt_users',JSON.stringify(u));
+}
+
+// Codes — cloud shared (critical for multi-device)
+function getCodes(){
+  var stored=_cache.codes||[];
+  // Check URL invite param
+  try{
+    var url=new URL(window.location.href);
+    var inv=url.searchParams.get('inv');
+    if(inv){
+      var exists=stored.find(function(c){return c.code===inv;});
+      if(!exists){
+        stored.push({code:inv,used:false,createdAt:Date.now(),fromUrl:true});
+        saveCodes(stored);
+      }
+      url.searchParams.delete('inv');
+      window.history.replaceState({},'',url.toString());
+    }
+  }catch(e){}
+  return stored;
+}
+function saveCodes(c){
+  _cache.codes=c;
+  // Save as object for Firebase (arrays lose empty slots)
+  var obj={};
+  c.forEach(function(item,i){obj['c'+i]=item;});
+  fbSet('codes',obj);
+  localStorage.setItem('nt_codes',JSON.stringify(c));
+}
+
+// Questions — cloud shared (admin edits visible to all)
+function getQData(){return _cache.q||{};}
+function saveQData(d){
+  _cache.q=d;
+  // Update allQ immediately so topic grid refreshes
+  TOPICS.forEach(function(t){if(d[t.id])allQ[t.id]=d[t.id];});
+  fbSet('questions',d);
+  localStorage.setItem('nt_q',JSON.stringify(d));
+}
+
+// Stats — local per user (leaderboard uses cloud)
+function getStats(u){
+  if(_cache.stats[u]) return _cache.stats[u];
+  var def={tests:0,wins:0,totalQ:0,totalCorrect:0,topicWrong:{},history:[],activity:{}};
+  try{return JSON.parse(localStorage.getItem('nt_stats_'+u)||JSON.stringify(def));}
+  catch(e){return def;}
+}
+function saveStats(u,d){
+  _cache.stats[u]=d;
+  localStorage.setItem('nt_stats_'+u,JSON.stringify(d));
+  // Sync score to leaderboard cloud (+ local cache шууд шинэчилнэ)
+  var lbEntry={score:d.totalCorrect||0,tests:d.tests||0,wins:d.wins||0,streak:(getStreak(u).streak||0),name:u};
+  if(!_cache.lb)_cache.lb={};
+  _cache.lb[u]=lbEntry;
+  fbUpdate('leaderboard/'+u,lbEntry);
+}
+
+// Streak — local
+function getStreak(u){
+  if(_cache.streak[u]) return _cache.streak[u];
+  try{return JSON.parse(localStorage.getItem('nt_streak_'+u)||'{"streak":0,"max":0,"lastDate":""}');}
+  catch(e){return{streak:0,max:0,lastDate:""};}
+}
+function saveStreak(u,d){
+  _cache.streak[u]=d;
+  localStorage.setItem('nt_streak_'+u,JSON.stringify(d));
+}
+
+// PwdMeta — local
+function getPwdMeta(u){
+  if(_cache.pwdmeta[u]) return _cache.pwdmeta[u];
+  try{return JSON.parse(localStorage.getItem('nt_pwdmeta_'+u)||'{"lastChanged":0}');}
+  catch(e){return{lastChanged:0};}
+}
+function savePwdMeta(u,d){
+  _cache.pwdmeta[u]=d;
+  localStorage.setItem('nt_pwdmeta_'+u,JSON.stringify(d));
+}
+
+
+// ===== SECURITY: Rate limit =====
+const _attempts={};
+function checkRateLimit(u){
+  const now=Date.now();
+  if(!_attempts[u])_attempts[u]={count:0,reset:now+60000};
+  if(now>_attempts[u].reset){_attempts[u]={count:0,reset:now+60000}}
+  _attempts[u].count++;
+  return _attempts[u].count<=5;
+}
+
+// ===== SANITIZE =====
+function sanitize(s){return String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]))}
+
+// ===== AUTH =====
+function updateCloudStatus(){
+  var el=document.getElementById('cloud-status');
+  if(!el) return;
+  if(_cloudOk){
+    el.innerHTML='☁️ <span style="color:var(--green)">Cloud-д холбогдсон</span> — бүртгэл Firebase-д хадгалагдана';
+  }else{
+    el.innerHTML='📴 <span style="color:var(--amber)">Local горим</span> — Firebase-д холбогдсонгүй (Rules-аа шалгана уу)';
+  }
+}
+function init(){
+  // Clear any stale inline styles on screens
+  document.querySelectorAll('.screen').forEach(function(s){s.style.display='';});
+  const dark=localStorage.getItem('nt_dark');
+  if(dark==='1'){document.documentElement.setAttribute('data-theme','dark');document.getElementById('dark-btn').textContent='☀️'}
+  document.getElementById('auth-err').textContent='⏳ Холбогдож байна...';
+  document.getElementById('auth-err').style.color='var(--t2)';
+  loadAllData().then(function(){
+    document.getElementById('auth-err').textContent='';
+    document.getElementById('auth-err').style.color='';
+    updateCloudStatus();
+    // Sync questions from cloud into allQ
+    const saved=_cache.q;
+    if(saved&&Object.keys(saved).length>0){
+      TOPICS.forEach(function(t){
+        if(saved[t.id]&&saved[t.id].length>0) allQ[t.id]=saved[t.id];
+      });
+    }
+    // Ensure admin exists
+    const users=getUsers();
+    if(!users[ADMIN_USER]){
+      users[ADMIN_USER]={pass:btoa(ADMIN_PASS),role:'admin',blocked:false};
+      saveUsers(users);
+    }
+    const sess=localStorage.getItem('nt_session');
+    if(sess&&users[sess]&&!users[sess].blocked){
+      currentUser=sess;
+      enterApp();
+      return;
+    }
+    showScreen('auth');
+  }).catch(function(){
+    document.getElementById('auth-err').textContent='';
+    updateCloudStatus();
+    const users=getUsers();
+    if(!users[ADMIN_USER]){users[ADMIN_USER]={pass:btoa(ADMIN_PASS),role:'admin',blocked:false};saveUsers(users)}
+    const sess=localStorage.getItem('nt_session');
+    if(sess&&users[sess]&&!users[sess].blocked){currentUser=sess;enterApp();return}
+    showScreen('auth');
+  });
+}
+
+function doAuth(){
+  const u=document.getElementById('auth-user').value.trim().toLowerCase();
+  const p=document.getElementById('auth-pass').value;
+  const err=document.getElementById('auth-err');
+  if(!u||!p){err.textContent='Нэр, нууц үгээ оруулна уу.';return}
+  if(!checkRateLimit(u)){err.textContent='Хэт олон оролдлого. 1 минут хүлээнэ үү.';return}
+  const users=getUsers();
+  if(users[u]){
+    if(users[u].blocked){err.textContent='Энэ бүртгэл блоклогдсон.';return}
+    if(users[u].pass!==btoa(p)){err.textContent='Нууц үг буруу.';return}
+    err.textContent='';currentUser=u;localStorage.setItem('nt_session',u);enterApp();return;
+  }
+  const codes=getCodes();
+  const codeIdx=codes.findIndex(c=>c.code===p&&!c.used);
+  if(codeIdx===-1){
+    err.textContent='Нэвтрэх нэр олдсонгүй. Урилгын код буруу эсвэл ашиглагдсан байна.';
+    return;
+  }
+  err.textContent='✓ Урилгын код зөв! Нууц үгээ тохируулна уу...';
+  err.style.color='var(--green)';
+  setTimeout(function(){err.style.color='';},3000);
+  showSetPassModal(u,codeIdx);
+}
+
+function logout(){
+  mConfirm('Гарахдаа итгэлтэй байна уу?','Таны дэвшил хадгалагдана.','Гарах',function(){
+    currentUser=null;localStorage.removeItem('nt_session');
+    selTopics=[];
+    document.getElementById('nav-menu').style.display='none';
+    document.getElementById('user-chip').style.display='none';
+    document.getElementById('streak-nav').style.display='none';
+    document.getElementById('bottom-nav').style.display='none';
+    showScreen('auth');
+  },'👋');
+}
+
+function isAdmin(){const u=getUsers();return u[currentUser]&&u[currentUser].role==='admin'}
+function isLoggedIn(){return !!currentUser}
+
+function enterApp(){
+  // Нэвтрэх карт-ыг хамгийн түрүүнд нуу (доор алдаа гарсан ч энэ гацахгүй)
+  showMain('home');
+  document.getElementById('nav-menu').style.display='flex';
+  document.getElementById('user-chip').style.display='flex';
+  document.getElementById('user-name-chip').textContent=currentUser;
+  document.getElementById('user-dot').textContent=currentUser.charAt(0).toUpperCase();
+  document.getElementById('welcome-badge').textContent='👋 Сайн байна уу, '+sanitize(currentUser)+'!';
+  if(isAdmin()){
+    document.getElementById('nav-editor').style.display='';
+    document.getElementById('bn-admin').style.display='';
+  }else{
+    document.getElementById('nav-editor').style.display='none';
+    document.getElementById('bn-admin').style.display='none';
+  }
+  document.getElementById('bottom-nav').style.display='block';
+  // Sync allQ from cache before rendering
+  var saved=_cache.q;
+  if(saved&&Object.keys(saved).length>0){
+    TOPICS.forEach(function(t){if(saved[t.id]&&saved[t.id].length>0)allQ[t.id]=saved[t.id];});
+  }
+  try{updateStreakUI();}catch(e){console.error('updateStreakUI',e);}
+  try{updateLevelUI();}catch(e){console.error('updateLevelUI',e);}
+  try{renderTopicGrid();}catch(e){console.error('renderTopicGrid',e);}
+  try{renderLeaderboard();}catch(e){console.error('renderLeaderboard',e);}
+  showMain('home');
+}
+
+// ===== STREAK =====
+function updateStreakUI(){
+  const sd=getStreak(currentUser);
+  document.getElementById('streak-num').textContent=sd.streak;
+  document.getElementById('streak-max').textContent=sd.max+' өдөр';
+  document.getElementById('streak-nav-num').textContent=sd.streak;
+  document.getElementById('streak-nav').style.display=sd.streak>0?'flex':'none';
+}
+
+function recordStreak(){
+  const sd=getStreak(currentUser);
+  const today=new Date().toISOString().slice(0,10);
+  if(sd.lastDate===today)return;
+  const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  if(sd.lastDate===yesterday)sd.streak+=1;
+  else sd.streak=1;
+  sd.lastDate=today;
+  sd.max=Math.max(sd.max,sd.streak);
+  saveStreak(currentUser,sd);
+  updateStreakUI();
+}
+
+// ===== LEVEL =====
+// totalCorrect-оос хамаарч түвшин тооцоолно. {lvl, pct, lbl} буцаана.
+function calcLevel(totalCorrect){
+  var labels=['Шинэхэн','Суралцагч','Идэвхтэн','Чадварлаг','Мэргэжилтэн','Эксперт','Мастер','Гросмейстер'];
+  var n=totalCorrect||0;
+  var lvl=1, need=5, acc=0;
+  while(n>=acc+need){acc+=need;lvl++;need+=5;}
+  var pct=Math.round(((n-acc)/need)*100);
+  if(pct>100)pct=100;
+  if(pct<0)pct=0;
+  var lbl=labels[Math.min(lvl-1,labels.length-1)];
+  return {lvl:lvl,pct:pct,lbl:lbl};
+}
+
+function updateLevelUI(){
+  const stats=getStats(currentUser);
+  const {lvl,pct,lbl}=calcLevel(stats.totalCorrect||0);
+  document.getElementById('level-num').textContent=lvl;
+  document.getElementById('level-bar').style.width=pct+'%';
+  document.getElementById('level-lbl').textContent=lbl;
+}
+
+// ===== TOPICS =====
+function renderTopicGrid(){
+  const g=document.getElementById('topic-grid');g.innerHTML='';
+  TOPICS.forEach(t=>{
+    const cnt=(allQ[t.id]||[]).length;
+    const d=document.createElement('div');
+    d.className='topic-card'+(selTopics.includes(t.id)?' sel':'');
+    d.style.setProperty('--topic-color',t.color);
+    d.innerHTML=`<div class="topic-icon">${t.icon}</div><div class="topic-name">${t.name}</div><div class="topic-count">${cnt} асуулт</div>`;
+    d.onclick=()=>{
+      const i=selTopics.indexOf(t.id);
+      if(i===-1)selTopics.push(t.id);else selTopics.splice(i,1);
+      d.classList.toggle('sel');
+      const btn=document.getElementById('start-btn');
+      btn.disabled=selTopics.length===0;
+      btn.textContent=selTopics.length?'Тест эхлэх →':'Сэдэв сонгоно уу';
+    };
+    g.appendChild(d);
+  });
+}
+
+// ===== TEST =====
+function shuffleOpts(q){
+  const indices=[0,1,2,3].sort(()=>Math.random()-.5);
+  return{q:q.q,opts:indices.map(i=>q.opts[i]),ans:indices.indexOf(q.ans),exp:q.exp,topic:q.topic};
+}
+
+function startTest(){
+  timerSec=parseInt(document.getElementById('timer-sec').value)||0;
+  let pool=[];
+  selTopics.forEach(t=>(allQ[t]||[]).forEach(q=>pool.push({...q,topic:t})));
+  pool=pool.sort(()=>Math.random()-.5).map(shuffleOpts);
+  const cv=document.getElementById('q-count').value;
+  const cnt=cv==='all'?pool.length:Math.min(parseInt(cv),pool.length);
+  testQueue=pool.slice(0,cnt);
+  cur=0;score=0;totalTime=0;userAns=[];
+  showScreen('test');loadQ();
+}
+
+function loadQ(){
+  const q=testQueue[cur];
+  document.getElementById('q-num').textContent=(cur+1)+' / '+testQueue.length;
+  document.getElementById('prog-fill').style.width=(cur/testQueue.length*100)+'%';
+  const tp=TOPICS.find(t=>t.id===q.topic);
+  document.getElementById('q-topic-badge').textContent=tp?tp.name:'';
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('explanation').style.display='none';
+  document.getElementById('explanation').textContent=q.exp||'';
+  const opts=document.getElementById('options');opts.innerHTML='';
+  ['А','Б','В','Г'].forEach((l,i)=>{
+    const d=document.createElement('div');d.className='opt';
+    d.innerHTML=`<div class="opt-letter">${l}</div><div class="opt-text">${q.opts[i]}</div>`;
+    d.onclick=()=>selAns(i,q.ans,q.exp);
+    opts.appendChild(d);
+  });
+  document.getElementById('btn-next').disabled=true;
+  timeLeft=timerSec>0?timerSec:9999;
+  updateTimerUI();clearInterval(timerInt);
+  if(timerSec>0){
+    document.getElementById('timer-pill').style.display='';
+    timerInt=setInterval(()=>{timeLeft--;updateTimerUI();if(timeLeft<=0){clearInterval(timerInt);autoTO(q.ans,q.exp);}},1000);
+  }else{document.getElementById('timer-pill').style.display='none'}
+}
+
+function updateTimerUI(){
+  const el=document.getElementById('timer-pill'),t=Math.max(0,timeLeft);
+  document.getElementById('time-left').textContent=t;
+  el.className='timer-pill'+(t<=5?' danger':t<=8?' warn':'');
+}
+
+function selAns(idx,correct,exp){
+  clearInterval(timerInt);
+  document.querySelectorAll('.opt').forEach((o,i)=>{
+    o.onclick=null;
+    if(i===correct)o.classList.add('correct');
+    else if(i===idx)o.classList.add('wrong');
+  });
+  if(idx===correct)score++;
+  totalTime+=timerSec>0?timerSec-timeLeft:0;
+  userAns.push({q:testQueue[cur].q,chosen:idx,ans:correct,opts:testQueue[cur].opts,ok:idx===correct,topic:testQueue[cur].topic});
+  if(exp)document.getElementById('explanation').style.display='block';
+  document.getElementById('btn-next').disabled=false;
+}
+
+function autoTO(correct,exp){
+  document.querySelectorAll('.opt').forEach((o,i)=>{o.onclick=null;if(i===correct)o.classList.add('correct')});
+  totalTime+=timerSec;
+  userAns.push({q:testQueue[cur].q,chosen:-1,ans:correct,opts:testQueue[cur].opts,ok:false,topic:testQueue[cur].topic});
+  if(exp)document.getElementById('explanation').style.display='block';
+  document.getElementById('btn-next').disabled=false;
+}
+
+function nextQ(){cur++;if(cur>=testQueue.length){showResult();return}loadQ()}
+
+function showResult(){
+  clearInterval(timerInt);
+  const pct=Math.round(score/testQueue.length*100);
+  document.getElementById('r-score').textContent=score+'/'+testQueue.length;
+  document.getElementById('r-correct').textContent=score;
+  document.getElementById('r-wrong').textContent=testQueue.length-score;
+  document.getElementById('r-time').textContent=totalTime+'с';
+  document.getElementById('r-pct').textContent=pct+'%';
+  const msgs=pct>=90?['🏆 Гайхалтай!','Та маш сайн мэднэ!']:pct>=70?['👍 Сайн!','Маш сайн хариуллаа!']:pct>=50?['😊 Дундаж','Бага давтаж үзэхэд болно.']:['📚 Давтах хэрэгтэй','Хичээлийн тэмдэглэлийг дахин уншаарай.'];
+  document.getElementById('r-msg').textContent=msgs[0];
+  document.getElementById('r-sub').textContent=msgs[1];
+  const list=document.getElementById('review-list');list.innerHTML='';
+  userAns.forEach((a,i)=>{
+    const row=document.createElement('div');row.className='review-item';
+    row.innerHTML=`<div class="ri-icon ${a.ok?'ri-ok':'ri-bad'}">${a.ok?'✓':'✗'}</div><div><div class="ri-q">${i+1}. ${sanitize(a.q)}</div>${!a.ok?`<div class="ri-ans">Зөв: <span class="ri-correct">${sanitize(a.opts[a.ans])}</span></div>`:''}</div>`;
+    list.appendChild(row);
+  });
+  recordStreak();
+  recordStats(pct);
+  updateLevelUI();
+  renderLeaderboard();
+  getAIAdvice(pct);
+  showScreen('result');
+}
+
+function recordStats(pct){
+  const stats=getStats(currentUser);
+  stats.tests=(stats.tests||0)+1;
+  if(pct>=70)stats.wins=(stats.wins||0)+1;
+  stats.totalQ=(stats.totalQ||0)+testQueue.length;
+  stats.totalCorrect=(stats.totalCorrect||0)+score;
+  if(!stats.topicWrong)stats.topicWrong={};
+  userAns.forEach(a=>{if(!a.ok){stats.topicWrong[a.topic]=(stats.topicWrong[a.topic]||0)+1}});
+  if(!stats.history)stats.history=[];
+  const today=new Date().toISOString().slice(0,10);
+  stats.history.push({date:today,score,total:testQueue.length,pct,time:Date.now()});
+  if(stats.history.length>50)stats.history=stats.history.slice(-50);
+  // Activity
+  if(!stats.activity)stats.activity={};
+  const nowH=new Date().getHours();
+  const key=today+'_'+nowH;
+  stats.activity[key]=(stats.activity[key]||0)+1;
+  saveStats(currentUser,stats);
+}
+
+async function getAIAdvice(pct){
+  const wrongTopics=[...new Set(userAns.filter(a=>!a.ok).map(a=>a.topic))];
+  const wrongQs=userAns.filter(a=>!a.ok).map(a=>`- "${a.q}" (Зөв: ${a.opts[a.ans]})`).join('\n');
+  const topicNames=wrongTopics.map(t=>TOPICS.find(x=>x.id===t)?.name||t).join(', ');
+  if(userAns.filter(a=>!a.ok).length===0){
+    document.getElementById('ai-body').innerHTML=`<p>🎉 Бүх асуултыг зөв хариуллаа! Гайхалтай. Өндөр түвшний тестийг оролдоорой.</p>`;
+    return;
+  }
+  const prompt=`Та 10-р ангийн нийгэм, соёлын хичээлийн AI зөвлөгч юм. Монгол хэлээр, найрсаг өнгөөр хариулна уу.
+
+Сурагч тестэд ${pct}% оноо авлаа.
+Буруу хариулсан сэдвүүд: ${topicNames||'байхгүй'}
+Буруу хариулсан асуултууд:
+${wrongQs}
+
+Дараах форматаар зөвлөгөө өгнө үү (markdown ашиглахгүй, цэвэр текст):
+
+[АЛДААНЫ ШИНЖИЛГЭЭ]
+Юуг сайн ойлгоогүй байгааг товч тайлбарла.
+
+[ДАВТАХ СЭДВҮҮД]
+Ямар сэдвийг илүү сайн судлах хэрэгтэйг жагсаа.
+
+[ЗӨВЛӨГӨӨ]
+3-4 практик зөвлөгөө өг.`;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await resp.json();
+    const text=data.content?.[0]?.text||'';
+    if(!text){document.getElementById('ai-body').innerHTML='<p style="color:var(--t2)">Зөвлөгөө авах боломжгүй.</p>';return}
+    const sections={};
+    const parts=text.split(/\[(.*?)\]/g).filter(s=>s.trim());
+    for(let i=0;i<parts.length;i+=2){if(parts[i+1])sections[parts[i].trim()]=parts[i+1].trim()}
+    let html='';
+    if(wrongTopics.length>0){
+      html+=`<div class="ai-topic-tags">${wrongTopics.map(t=>`<span class="ai-tag">${TOPICS.find(x=>x.id===t)?.icon} ${TOPICS.find(x=>x.id===t)?.name||t}</span>`).join('')}</div>`;
+    }
+    if(Object.keys(sections).length>0){
+      Object.entries(sections).forEach(([title,content])=>{
+        html+=`<div class="ai-section"><div class="ai-section-title">${title}</div><div style="font-size:14px;color:var(--text);line-height:1.7">${content.replace(/\n/g,'<br>')}</div></div>`;
+      });
+    }else{html=`<div style="font-size:14px;color:var(--text);line-height:1.7">${text.replace(/\n/g,'<br>')}</div>`}
+    document.getElementById('ai-body').innerHTML=html;
+  }catch(e){document.getElementById('ai-body').innerHTML='<p style="color:var(--t2)">Зөвлөгөө авах боломжгүй.</p>'}
+}
+
+function restartTest(){
+  const orig=testQueue.map(q=>{
+    const origQ=allQ[q.topic]?.find(x=>x.q===q.q)||q;
+    return shuffleOpts({...origQ,topic:q.topic});
+  }).sort(()=>Math.random()-.5);
+  testQueue=orig;cur=0;score=0;totalTime=0;userAns=[];
+  showScreen('test');loadQ();
+}
+
+// ===== LEADERBOARD =====
+// Cloud leaderboard (_cache.lb) — бүх төхөөрөмжийн оноо.
+// Энэ төхөөрөмж дээрх local stats-ийг max-аар нэгтгэнэ (оноо зөвхөн өсдөг тул аюулгүй).
+function getLeaderboard(){
+  var map={};
+  // 1) Cloud-оос ирсэн оноонууд (бусад хэрэглэгчид)
+  var cloud=_cache.lb||{};
+  Object.keys(cloud).forEach(function(u){
+    if(u===ADMIN_USER)return;
+    var c=cloud[u]||{};
+    map[u]={name:u,score:c.score||0,tests:c.tests||0,wins:c.wins||0,streak:c.streak||0};
+  });
+  // 2) Энэ төхөөрөмж дээрх local stats-ийг нэгтгэх (хамгийн шинэ оноо)
+  var users=getUsers();
+  Object.keys(users).forEach(function(u){
+    if(u===ADMIN_USER)return;
+    var s=getStats(u), st=getStreak(u);
+    if(!map[u])map[u]={name:u,score:0,tests:0,wins:0,streak:0};
+    map[u].score=Math.max(map[u].score, s.totalCorrect||0);
+    map[u].tests=Math.max(map[u].tests, s.tests||0);
+    map[u].wins=Math.max(map[u].wins, s.wins||0);
+    if(st&&st.streak)map[u].streak=Math.max(map[u].streak, st.streak);
+  });
+  // 3) Одоогийн хэрэглэгчийн streak-ийг local-оос (хамгийн шинэ)
+  if(currentUser&&map[currentUser]){
+    var cs=getStreak(currentUser);
+    if(cs)map[currentUser].streak=cs.streak||map[currentUser].streak;
+  }
+  // 4) Массив болгож, level тооцож, оноогоор эрэмбэлэх
+  var lb=Object.keys(map).map(function(u){
+    var e=map[u];
+    e.lvl=calcLevel(e.score).lvl;
+    return e;
+  });
+  return lb.sort(function(a,b){return b.score-a.score;}).slice(0,10);
+}
+
+function getTcolBadge(rank){
+  if(rank===0)return{cls:'tcol-gold',txt:'🥇 Алт'};
+  if(rank===1)return{cls:'tcol-silver',txt:'🥈 Мөнгө'};
+  if(rank===2)return{cls:'tcol-bronze',txt:'🥉 Хүрэл'};
+  if(rank<=4)return{cls:'tcol-bronze',txt:'🎖 Top 5'};
+  return{cls:'',txt:''};
+}
+
+function renderLeaderboard(){
+  const lb=getLeaderboard();
+  const el=document.getElementById('lb-list');if(!el)return;el.innerHTML='';
+  if(lb.length===0){el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--t2)">Одоохондоо өгөгдөл байхгүй</div>';return}
+  lb.forEach((u,i)=>{
+    const rankCls=i===0?'r1':i===1?'r2':i===2?'r3':'';
+    const tcol=getTcolBadge(i);
+    const div=document.createElement('div');
+    div.className='lb-item'+(u.name===currentUser?' me':'');
+    div.innerHTML=`
+      <div class="lb-rank ${rankCls}">${i+1}</div>
+      <div class="lb-avatar">${u.name.charAt(0).toUpperCase()}</div>
+      <div class="lb-info">
+        <div class="lb-name">${sanitize(u.name)}${u.name===currentUser?' <span style="font-size:11px;color:var(--purple)">(та)</span>':''}</div>
+        <div class="lb-meta">Lv.${u.lvl} · ${u.tests} тест · 🔥${u.streak}</div>
+      </div>
+      <div class="lb-tcol">
+        <div class="lb-score">${u.score}</div>
+        ${tcol.txt?`<span class="tcol-badge ${tcol.cls}">${tcol.txt}</span>`:''}
+      </div>`;
+    el.appendChild(div);
+  });
+}
+
+// Leaderboard-ийг cloud-оос дахин татаж шинэчилнэ (дэлгэц нээх бүрд)
+async function refreshLeaderboard(){
+  try{
+    var r=await fbGet('leaderboard');
+    if(r.ok && r.data) _cache.lb=r.data;
+  }catch(e){}
+  renderLeaderboard();
+}
+
+// ===== DASHBOARD =====
+function renderDashboard(){
+  const stats=getStats(currentUser);
+  const {lvl,lbl}=calcLevel(stats.totalCorrect||0);
+  const pct=stats.totalQ>0?Math.round(stats.totalCorrect/stats.totalQ*100):0;
+  const el=document.getElementById('dash-grid');
+  if(!el)return;
+  el.innerHTML=`
+    <div class="dash-card"><h3>Нийт тест</h3><div class="dash-big">${stats.tests||0}</div><div class="dash-sub">Оролдлого</div></div>
+    <div class="dash-card"><h3>Нийт зөв</h3><div class="dash-big">${stats.totalCorrect||0}</div><div class="dash-sub">${pct}% дундаж</div></div>
+    <div class="dash-card"><h3>Ялалт (70%+)</h3><div class="dash-big">${stats.wins||0}</div><div class="dash-sub">${stats.tests?Math.round((stats.wins||0)/(stats.tests||1)*100):0}% ялалтын хувь</div></div>
+    <div class="dash-card"><h3>Level</h3><div class="dash-big">${lvl}</div><div class="dash-sub">${lbl}</div></div>`;
+  // Topic bars
+  const tb=document.getElementById('topic-bars');if(!tb)return;tb.innerHTML='';
+  TOPICS.forEach(t=>{
+    const wrong=stats.topicWrong&&stats.topicWrong[t.id]||0;
+    const total=(allQ[t.id]||[]).length*Math.max(1,Math.round((stats.tests||1)/TOPICS.length));
+    const barPct=Math.min(100,wrong>0?Math.round(wrong/(wrong+10)*100):0);
+    tb.innerHTML+=`<div class="topic-bar-item">
+      <div class="topic-bar-label">${t.icon} ${t.name.split(' ')[0]}</div>
+      <div class="topic-bar-track"><div class="topic-bar-fill" style="width:${barPct}%;background:${t.color}"></div></div>
+      <div class="topic-bar-pct">${wrong} алдаа</div>
+    </div>`;
+  });
+  // AI dashboard analysis
+  if((stats.tests||0)>=2){
+    const dashCard=document.getElementById('dash-ai-card');
+    if(dashCard){dashCard.style.display='';getDashboardAI(stats,pct)}
+  }
+}
+
+async function getDashboardAI(stats,avgPct){
+  const el=document.getElementById('dash-ai-body');if(!el)return;
+  el.innerHTML=`<div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:4px">Шинжилж байна...</span></div>`;
+  const topicWrong=Object.entries(stats.topicWrong||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([id,cnt])=>`${TOPICS.find(t=>t.id===id)?.name||id}: ${cnt} алдаа`).join(', ');
+  const prompt=`Монгол хэлээр, ${currentUser} сурагчийн нийгэм, соёлын хичээлийн ерөнхий явцад дүн шинжилгээ хий.
+
+Нийт тест: ${stats.tests}
+Дундаж оноо: ${avgPct}%
+Хамгийн их алдаатай сэдэв: ${topicWrong||'байхгүй'}
+Level: ${calcLevel(stats.totalCorrect||0).lvl}
+
+Товч (2-3 өгүүлбэр) зөвлөгөө өг.`;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await resp.json();
+    const text=data.content?.[0]?.text||'';
+    el.innerHTML=`<div style="font-size:14px;line-height:1.7">${text.replace(/\n/g,'<br>')}</div>`;
+  }catch(e){el.innerHTML='<p style="color:var(--t2)">Шинжилгээ авах боломжгүй.</p>'}
+}
+
+// ===== PROFILE =====
+function renderProfile(){
+  const stats=getStats(currentUser);
+  const sd=getStreak(currentUser);
+  const users=getUsers();
+  const {lvl,pct,lbl}=calcLevel(stats.totalCorrect||0);
+  const joinedDays=users[currentUser]?.joinedAt?Math.floor((Date.now()-users[currentUser].joinedAt)/86400000):0;
+
+  // Header
+  const ph=document.getElementById('profile-header');
+  ph.innerHTML=`
+    <div class="profile-avatar">${currentUser.charAt(0).toUpperCase()}</div>
+    <div>
+      <div class="profile-name">${sanitize(currentUser)}</div>
+      <div class="profile-role">${isAdmin()?'👑 Admin':'🎓 Сурагч'}</div>
+      <div class="profile-level">
+        <span class="profile-level-badge">Lv.${lvl} — ${lbl}</span>
+        <span style="font-size:12px;color:var(--t2)">${joinedDays} өдрийн өмнө нэгдсэн</span>
+      </div>
+    </div>`;
+
+  // Stats
+  const ps=document.getElementById('profile-stats');
+  const avgPct=stats.totalQ>0?Math.round(stats.totalCorrect/stats.totalQ*100):0;
+  ps.innerHTML=`
+    <div class="pstat"><div class="pstat-n">${stats.tests||0}</div><div class="pstat-l">Нийт тест</div></div>
+    <div class="pstat"><div class="pstat-n">🔥${sd.streak}</div><div class="pstat-l">Streak</div></div>
+    <div class="pstat"><div class="pstat-n">${avgPct}%</div><div class="pstat-l">Дундаж</div></div>`;
+
+  // Activity grid (last 28 days)
+  const ag=document.getElementById('activity-grid');ag.innerHTML='';
+  const today=new Date();
+  for(let i=27;i>=0;i--){
+    const d=new Date(today-i*86400000);
+    const key=d.toISOString().slice(0,10);
+    let count=0;
+    Object.keys(stats.activity||{}).forEach(k=>{if(k.startsWith(key))count+=stats.activity[k]});
+    const lvlC=count===0?'':count<=1?'l1':count<=3?'l2':count<=5?'l3':'l4';
+    const cell=document.createElement('div');
+    cell.className='act-cell '+lvlC;
+    cell.title=key+': '+count+' идэвхжилт';
+    ag.appendChild(cell);
+  }
+
+  // Contest history
+  const ch=document.getElementById('contest-history');
+  const wins=stats.history?stats.history.filter(h=>h.pct>=70):[];
+  if(wins.length===0){
+    ch.innerHTML='<div style="font-size:13px;color:var(--t2);padding:1rem;text-align:center">Одоохондоо тэмцээнд ороогүй байна</div>';
+  }else{
+    ch.innerHTML=wins.slice(-5).reverse().map(h=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <div><span style="font-size:16px">${h.pct>=90?'🏆':h.pct>=70?'🥇':'🎖'}</span> ${h.pct}% — ${h.score}/${h.total} зөв</div>
+        <div style="color:var(--t2)">${h.date}</div>
+      </div>`).join('');
+  }
+
+  // Password change cooldown
+  const meta=getPwdMeta(currentUser);
+  const daysSince=meta.lastChanged?Math.floor((Date.now()-meta.lastChanged)/86400000):999;
+  const canChange=daysSince>=NAME_CHANGE_DAYS;
+  const note=document.getElementById('pwd-note');
+  if(!canChange){note.textContent=`Нууц үг дахин солих боломжтой болоход ${NAME_CHANGE_DAYS-daysSince} өдөр үлдлээ.`}
+  else{note.textContent=''}
+  const pwdBtn=document.querySelector('#pwd-section .auth-btn');
+  if(pwdBtn){pwdBtn.disabled=!canChange;if(!canChange)pwdBtn.style.opacity='.5'}
+}
+
+function changePassword(){
+  const oldP=document.getElementById('old-pass').value;
+  const newP=document.getElementById('new-pass').value;
+  const err=document.getElementById('pwd-err');
+  const meta=getPwdMeta(currentUser);
+  const daysSince=meta.lastChanged?Math.floor((Date.now()-meta.lastChanged)/86400000):999;
+  if(daysSince<NAME_CHANGE_DAYS){err.textContent=`${NAME_CHANGE_DAYS-daysSince} өдрийн дараа солих боломжтой.`;return}
+  const users=getUsers();
+  if(users[currentUser].pass!==btoa(oldP)){err.textContent='Хуучин нууц үг буруу.';return}
+  if(!newP||newP.length<4){err.textContent='Шинэ нууц үг 4+ тэмдэгт байх ёстой.';return}
+  users[currentUser].pass=btoa(newP);saveUsers(users);
+  savePwdMeta(currentUser,{lastChanged:Date.now()});
+  err.style.color='var(--green)';err.textContent='✓ Нууц үг амжилттай солигдлоо.';
+  document.getElementById('old-pass').value='';document.getElementById('new-pass').value='';
+  setTimeout(()=>{err.textContent='';err.style.color=''},3000);
+  renderProfile();
+}
+
+// ===== ADMIN =====
+function renderEditorContent(){
+  const c=document.getElementById('editor-content');
+  if(!isAdmin()){
+    c.innerHTML=`<div class="no-access"><div class="icon">🔒</div><h3>Хандах эрхгүй</h3><p>Зөвхөн Admin засах боломжтой</p></div>`;
+    return;
+  }
+  c.innerHTML=`
+    <div class="editor-header"><h2>Admin Панель <span class="admin-badge">ADMIN</span></h2><p>Хэрэглэгч, урилга, асуулт удирдах — ${_cloudOk?'☁️ Cloud холбогдсон':'📴 Local горим — cloud холбогдоогүй'}</p></div>
+    <div class="admin-tabs">
+      <button class="atab ${adminSection==='users'?'active':''}" onclick="setAdminSection('users')">👥 Хэрэглэгч</button>
+      <button class="atab ${adminSection==='invites'?'active':''}" onclick="setAdminSection('invites')">🎟 Урилга</button>
+      <button class="atab ${adminSection==='questions'?'active':''}" onclick="setAdminSection('questions')">📝 Асуулт</button>
+    </div>
+    <div id="admin-section-content"></div>`;
+  renderAdminSection();
+}
+
+function setAdminSection(s){adminSection=s;renderEditorContent()}
+
+function renderAdminSection(){
+  const c=document.getElementById('admin-section-content');if(!c)return;
+  if(adminSection==='users')renderUserAdmin(c);
+  else if(adminSection==='invites')renderInviteAdmin(c);
+  else renderQEditor(c);
+}
+
+function renderUserAdmin(c){
+  const users=getUsers();
+  const rows=Object.entries(users).filter(([u])=>u!==ADMIN_USER).map(([u,d])=>{
+    const st=getStats(u);
+    const blocked=d.blocked?true:false;
+    return `<tr>
+      <td><strong>${sanitize(u)}</strong></td>
+      <td>${st.tests||0}</td>
+      <td>${st.totalCorrect||0}</td>
+      <td><span class="status-dot ${blocked?'dot-blocked':'dot-active'}"></span>${blocked?'Блоклосон':'Идэвхтэй'}</td>
+      <td style="display:flex;gap:6px">
+        <button class="btn-sm danger" onclick="toggleBlock('${u}','${blocked}')">${blocked?'Нээх':'Блоклох'}</button>
+        <button class="btn-sm danger" onclick="deleteUser('${u}')" style="color:var(--red)">Устгах</button>
+      </td>
+    </tr>`;
+  }).join('');
+  c.innerHTML=`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;overflow-x:auto">
+      <table class="user-table">
+        <thead><tr><th>Нэр</th><th>Тест</th><th>Оноо</th><th>Төлөв</th><th>Үйлдэл</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="5" style="text-align:center;color:var(--t2);padding:2rem">Хэрэглэгч байхгүй</td></tr>'}</tbody>
+      </table>
+    </div>`;
+}
+
+function toggleBlock(u,blocked){
+  const users=getUsers();
+  if(!users[u])return;
+  users[u].blocked=blocked==='true'?false:true;
+  saveUsers(users);
+  showToast(users[u].blocked?'Блоклогдлоо':'Нээгдлээ');
+  renderEditorContent();
+}
+
+function deleteUser(u){
+  mConfirm(u+'-г устгах уу?','Устгасан бол буцаах боломжгүй.','Устгах',function(){
+  const users=getUsers();delete users[u];saveUsers(users);
+  localStorage.removeItem('nt_streak_'+u);
+  localStorage.removeItem('nt_stats_'+u);
+  if(_cache.lb)delete _cache.lb[u];
+  fbSet('leaderboard/'+u,null);
+  showToast('Устгагдлаа');
+  renderEditorContent();
+  });
+}
+
+function renderInviteAdmin(c){
+  const codes=getCodes();
+  const rows=codes.map((co,i)=>`<tr>
+    <td><strong style="letter-spacing:1px;color:var(--purple)">${co.code}</strong></td>
+    <td>${co.used?`<span style="color:var(--t2)">✓ ${sanitize(co.usedBy||'')}</span>`:'<span style="color:var(--green)">Идэвхтэй</span>'}</td>
+    <td>${co.createdAt?new Date(co.createdAt).toLocaleDateString('mn'):''}</td>
+    <td style="display:flex;gap:6px;flex-wrap:wrap">${!co.used?`
+      <button class="btn-sm" onclick="showQR('${co.code}')" style="color:var(--purple);border-color:var(--purple)">📱 QR</button>
+      <button class="btn-sm danger" onclick="removeCode(${i})">Устгах</button>`:''}
+    </td>
+  </tr>`).join('');
+  c.innerHTML=`
+    <div style="margin-bottom:1rem">
+      <button class="auth-btn" onclick="genInvite()" style="width:auto;padding:12px 24px">+ Шинэ урилгын код үүсгэх</button>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;overflow-x:auto">
+      <table class="user-table">
+        <thead><tr><th>Код</th><th>Төлөв</th><th>Огноо</th><th>Үйлдэл</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="4" style="text-align:center;color:var(--t2);padding:2rem">Код байхгүй</td></tr>'}</tbody>
+      </table>
+    </div>`;
+}
+
+function showQR(code){
+  var modal=document.getElementById('qr-modal');
+  var codeEl=document.getElementById('qr-code-text');
+  var canvas=document.getElementById('qr-canvas');
+  var msgEl=document.getElementById('qr-msg');
+  if(codeEl) codeEl.textContent=code;
+  if(msgEl) msgEl.textContent='Утасны камераар уншаад нэр + нууц үгээ тохируулж бүртгүүлнэ үү.';
+  if(modal) modal.style.display='flex';
+  // Build URL with invite code
+  var url=window.location.href.split('?')[0]+'?inv='+code;
+  // Draw QR using qrcode.js CDN
+  if(canvas){
+    canvas.innerHTML='';
+    // Use QRCode library
+    if(typeof QRCode!=='undefined'){
+      new QRCode(canvas,{text:url,width:220,height:220,colorDark:'#6c5ce7',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+    } else {
+      // Fallback: show URL as text + use Google Charts API QR
+      var img=document.createElement("img");img.src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data="+encodeURIComponent(url)+"&color=6c5ce7";img.style.borderRadius="12px";img.style.width="220px";img.style.height="220px";canvas.appendChild(img);
+    }
+  }
+  // Store URL for copy
+  window._qrUrl=url;
+}
+function closeQR(){
+  document.getElementById('qr-modal').style.display='none';
+}
+function copyQRUrl(){
+  if(!window._qrUrl) return;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(window._qrUrl).then(function(){showToast('✓ Линк хуулагдлаа!');}).catch(function(){_fallbackCopy(window._qrUrl);});
+  } else { _fallbackCopy(window._qrUrl); }
+}
+function _fallbackCopy(text){
+  var ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,9999);
+  try{document.execCommand('copy');showToast('✓ Линк хуулагдлаа!');}
+  catch(e){showToast('Линкийг гараар хуулна уу.');}
+  document.body.removeChild(ta);
+}
+
+function genInvite(){
+  const code='INV-'+Math.random().toString(36).substr(2,6).toUpperCase();
+  const codes=getCodes();
+  codes.push({code,used:false,createdAt:Date.now()});
+  saveCodes(codes);
+  renderEditorContent();
+  // Auto-show QR right after creating
+  setTimeout(function(){showQR(code);},100);
+}
+function showShareModal(code, url){
+  var box=document.getElementById('share-modal');
+  var codeEl=document.getElementById('share-code-val');
+  var urlEl=document.getElementById('share-url-val');
+  if(codeEl) codeEl.textContent=code;
+  if(urlEl) urlEl.value=url;
+  if(box) box.style.display='flex';
+}
+function closeShareModal(){
+  var box=document.getElementById('share-modal');
+  if(box) box.style.display='none';
+}
+function copyShareUrl(){
+  var urlEl=document.getElementById('share-url-val');
+  if(!urlEl) return;
+  urlEl.select();
+  urlEl.setSelectionRange(0,9999);
+  try{document.execCommand('copy');showToast('✓ Линк хуулагдлаа!');}
+  catch(e){showToast('Линкийг гараар хуулна уу.');}
+}
+
+function removeCode(i){
+  const codes=getCodes();codes.splice(i,1);saveCodes(codes);
+  renderEditorContent();
+}
+
+// ===== Q EDITOR =====
+function renderQEditor(c){
+  c.innerHTML=`
+    <div style="font-size:15px;font-weight:600;margin-bottom:1rem">📝 Асуулт засах</div>
+    <div class="editor-topic-tabs" id="etabs"></div>
+    <div class="q-editor-list" id="q-editor-list"></div>
+    <button class="add-q-btn" onclick="addQ()">+ Асуулт нэмэх</button>
+    <button class="save-btn" onclick="saveQuestions()">✓ Хадгалах</button>`;
+  renderEditorTabs();renderEditor();
+}
+
+function renderEditorTabs(){
+  const c=document.getElementById('etabs');if(!c)return;c.innerHTML='';
+  TOPICS.forEach(t=>{const b=document.createElement('button');b.className='etab'+(t.id===editorTopic?' active':'');b.textContent=t.icon+' '+t.name;b.onclick=()=>{editorTopic=t.id;renderEditorTabs();renderEditor()};c.appendChild(b)});
+}
+
+function renderEditor(){
+  const list=document.getElementById('q-editor-list');if(!list)return;list.innerHTML='';
+  (allQ[editorTopic]||[]).forEach((q,qi)=>{
+    const card=document.createElement('div');card.className='qe-card';card.dataset.qi=qi;
+    let oh='<div class="opts-grid">';
+    ['А','Б','В','Г'].forEach((_,i)=>{oh+=`<div class="opt-inp-wrap"><input type="radio" class="opt-radio" name="ans_${qi}" value="${i}" ${q.ans===i?'checked':''}><input class="opt-inp" data-qi="${qi}" data-oi="${i}" value="${(q.opts[i]||'').replace(/"/g,'&quot;')}" placeholder="Хариулт"></div>`});
+    oh+='</div>';
+    card.innerHTML=`<div class="qe-num">Асуулт ${qi+1}</div><button class="delete-btn" onclick="deleteQ(${qi})" title="Устгах">✕</button><textarea class="qe-inp" rows="2" placeholder="Асуултын текст...">${q.q}</textarea>${oh}<div class="exp-label">Тайлбар:</div><input class="qe-exp-inp" value="${(q.exp||'').replace(/"/g,'&quot;')}" placeholder="Зөв хариултын тайлбар...">`;
+    list.appendChild(card);
+  });
+}
+
+function addQ(){if(!isAdmin())return;if(!allQ[editorTopic])allQ[editorTopic]=[];allQ[editorTopic].push({q:'',opts:['','','',''],ans:0,exp:''});renderEditor();setTimeout(()=>document.querySelector('.q-editor-list .qe-card:last-child')?.scrollIntoView({behavior:'smooth'}),100)}
+
+function deleteQ(qi){if(!isAdmin())return;mConfirm('Энэ асуултыг устгах уу?','Устгасан бол буцаах боломжгүй.','Устгах',function(){allQ[editorTopic].splice(qi,1);renderEditor();},'🗑️');}
+
+function saveQuestions(){
+  if(!isAdmin())return;
+  const cards=document.querySelectorAll('.qe-card'),qs=[];
+  cards.forEach(card=>{
+    const qi=card.dataset.qi;
+    const qText=card.querySelector('textarea').value.trim();if(!qText)return;
+    const opts=[];for(let i=0;i<4;i++)opts.push(card.querySelector(`input[data-oi="${i}"]`)?.value.trim()||'');
+    const ansEl=card.querySelector(`input[name="ans_${qi}"]:checked`);
+    const ans=ansEl?parseInt(ansEl.value):0;
+    const exp=card.querySelector('.qe-exp-inp')?.value.trim()||'';
+    qs.push({q:qText,opts,ans,exp});
+  });
+  allQ[editorTopic]=qs;
+  const saved=getQData();saved[editorTopic]=qs;saveQData(saved);
+  showToast('✓ Хадгалагдлаа!');renderTopicGrid();
+  renderEditorContent();
+}
+
+// ===== NAV =====
+function showMain(id){
+  // auth бүрэн нуу
+  var authEl=document.getElementById('auth');
+  authEl.classList.remove('show');
+  authEl.style.display='none';
+  ['home','test','result','leaderboard','dashboard','profile','editor'].forEach(function(s){
+    var el=document.getElementById(s);
+    if(el){el.classList.remove('show');el.style.display='';}
+  });
+  var el=document.getElementById(id);
+  if(el){el.classList.add('show');el.style.display='';}
+  // Top nav active
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(id==='home')document.getElementById('nav-home')?.classList.add('active');
+  if(id==='leaderboard'){document.getElementById('nav-lb')?.classList.add('active');renderLeaderboard();refreshLeaderboard();}
+  if(id==='dashboard'){document.getElementById('nav-dash')?.classList.add('active');renderDashboard()}
+  if(id==='profile')renderProfile();
+  if(id==='editor'){document.getElementById('nav-editor')?.classList.add('active');renderEditorContent()}
+  // Bottom nav active
+  ['bn-home','bn-lb','bn-dash','bn-profile','bn-admin'].forEach(b=>document.getElementById(b)?.classList.remove('active'));
+  const bnMap={home:'bn-home',leaderboard:'bn-lb',dashboard:'bn-dash',profile:'bn-profile',editor:'bn-admin'};
+  if(bnMap[id])document.getElementById(bnMap[id])?.classList.add('active');
+  // Дэлгэцийн дээшээ гүйлгэ
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){
+    s.classList.remove('show');
+    s.style.display='none';
+  });
+  var el=document.getElementById(id);
+  if(el){
+    el.classList.add('show');
+    el.style.display='';
+    // auth screen needs flex centering
+    if(id==='auth') el.style.display='';
+  }
+  window.scrollTo({top:0,behavior:'auto'});
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function toggleDark(){
+  const curr=document.documentElement.getAttribute('data-theme');
+  const next=curr==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  document.getElementById('dark-btn').textContent=next==='dark'?'☀️':'🌙';
+  localStorage.setItem('nt_dark',next==='dark'?'1':'0');
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.getElementById('auth')?.classList.contains('show'))doAuth();
+});
+
+init();
+
+// ===== MOBILE-SAFE MODALS =====
+let _confirmCb=null;
+function mConfirm(msg,sub,okLabel,cb,icon){
+  document.getElementById('confirm-icon').textContent=icon||'⚠️';
+  document.getElementById('confirm-msg').textContent=msg;
+  document.getElementById('confirm-sub').textContent=sub||'';
+  document.getElementById('confirm-ok-btn').textContent=okLabel||'Тийм';
+  document.getElementById('confirm-modal').style.display='flex';
+  _confirmCb=cb;
+  document.getElementById('confirm-ok-btn').onclick=function(){
+    document.getElementById('confirm-modal').style.display='none';
+    if(_confirmCb)_confirmCb();
+    _confirmCb=null;
+  };
+  document.getElementById('confirm-cancel-btn').onclick=function(){
+    document.getElementById('confirm-modal').style.display='none';
+    _confirmCb=null;
+  };
+}
+
+let _spUser='',_spCodeIdx=-1;
+function showSetPassModal(username,codeIdx){
+  _spUser=username;_spCodeIdx=codeIdx;
+  var modal=document.getElementById('setpass-modal');
+  var inp=document.getElementById('setpass-inp');
+  var inp2=document.getElementById('setpass-inp2');
+  inp.value='';inp2.value='';
+  document.getElementById('setpass-err').textContent='';
+  modal.style.display='flex';
+  modal.style.webkitDisplay='flex';
+  // iOS Safari: scroll to top so modal is visible above keyboard
+  document.body.scrollTop=0;
+  document.documentElement.scrollTop=0;
+  window.scrollTo(0,0);
+  setTimeout(function(){
+    try{inp.focus();}catch(err){}
+  },300);
+}
+function cancelSetPass(){
+  document.getElementById('setpass-modal').style.display='none';
+  _spUser='';_spCodeIdx=-1;
+}
+function confirmSetPass(){
+  const p1=document.getElementById('setpass-inp').value;
+  const p2=document.getElementById('setpass-inp2').value;
+  const err=document.getElementById('setpass-err');
+  if(!p1||p1.length<4){err.textContent='Нууц үг 4-өөс дээш тэмдэгттэй байх ёстой.';return}
+  if(p1!==p2){err.textContent='Нууц үг таарахгүй байна.';return}
+  const codes=getCodes();
+  codes[_spCodeIdx].used=true;codes[_spCodeIdx].usedBy=_spUser;codes[_spCodeIdx].usedAt=Date.now();
+  saveCodes(codes);
+  const users=getUsers();
+  users[_spUser]={pass:btoa(p1),role:'user',blocked:false,joinedAt:Date.now()};
+  saveUsers(users);
+  document.getElementById('setpass-modal').style.display='none';
+  currentUser=_spUser;
+  localStorage.setItem('nt_session',_spUser);
+  _spUser='';_spCodeIdx=-1;
+  enterApp();
+  showToast('✓ Бүртгэл амжилттай нээгдлээ!');
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'){
+    const authVisible=document.getElementById('auth').classList.contains('show');
+    const setpassVisible=document.getElementById('setpass-modal').style.display!=='none';
+    if(setpassVisible){confirmSetPass();}
+    else if(authVisible){doAuth();}
+  }
+});
+</script>
+
+<!-- SET PASSWORD MODAL -->
+<div id="setpass-modal" style="display:none" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">🔐 Нууц үг тохируулах</div>
+    <div class="modal-sub">Урилгын код зөв байна! Шинэ нууц үгээ тохируулна уу.</div>
+    <div class="form-group">
+      <label class="form-label">Шинэ нууц үг</label>
+      <input class="form-input" id="setpass-inp" type="password" placeholder="4+ тэмдэгт..." autocomplete="new-password" style="font-size:16px">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Нууц үг давтах</label>
+      <input class="form-input" id="setpass-inp2" type="password" placeholder="Дахин оруулах..." autocomplete="new-password" style="font-size:16px">
+    </div>
+    <div class="modal-err" id="setpass-err"></div>
+    <button class="auth-btn" id="setpass-btn" onclick="confirmSetPass()" style="margin-top:.75rem">Бүртгүүлэх →</button>
+    <button class="btn-outline" onclick="cancelSetPass()" style="width:100%;margin-top:.5rem;padding:11px">Буцах</button>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirm-modal" style="display:none" class="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirm-icon">⚠️</div>
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="confirm-sub" id="confirm-sub"></div>
+    <div class="confirm-btns">
+      <button class="btn-outline" id="confirm-cancel-btn">Цуцлах</button>
+      <button class="btn-danger" id="confirm-ok-btn">Тийм</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE INVITE MODAL -->
+<div id="share-modal" style="display:none" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">🔗 Урилгын линк</div>
+    <div class="modal-sub">Найздаа доорх линкийг илгээнэ үү. Линкэнд орохоор автоматаар нэвтрэх боломжтой болно.</div>
+    <div style="margin-bottom:1rem">
+      <div class="form-label" style="margin-bottom:6px">Урилгын код:</div>
+      <div id="share-code-val" style="font-size:22px;font-weight:700;letter-spacing:2px;color:var(--purple);text-align:center;padding:12px;background:rgba(108,92,231,.1);border-radius:10px"></div>
+    </div>
+    <div style="margin-bottom:1rem">
+      <div class="form-label" style="margin-bottom:6px">Эсвэл линк хуулах:</div>
+      <input id="share-url-val" type="text" readonly style="width:100%;font-size:12px;padding:10px;border:1.5px solid var(--border);border-radius:10px;background:var(--inp);color:var(--t2);font-family:monospace">
+    </div>
+    <button class="auth-btn" onclick="copyShareUrl()" style="margin-bottom:.5rem">📋 Линк хуулах</button>
+    <button class="btn-outline" onclick="closeShareModal()" style="width:100%;padding:11px">Хаах</button>
+  </div>
+</div>
+
+<!-- QR MODAL -->
+<div id="qr-modal" style="display:none" class="modal-overlay">
+  <div class="modal-box" style="text-align:center">
+    <div style="font-size:28px;margin-bottom:.5rem">📱</div>
+    <div class="modal-title">Урилгын QR код</div>
+    <div style="font-size:22px;font-weight:700;letter-spacing:3px;color:var(--purple);margin:.75rem 0;padding:10px;background:rgba(108,92,231,.1);border-radius:10px" id="qr-code-text"></div>
+    <div style="display:flex;justify-content:center;margin:1rem 0">
+      <div id="qr-canvas" style="background:#fff;padding:12px;border-radius:14px;display:inline-block;min-width:220px;min-height:220px;display:flex;align-items:center;justify-content:center"></div>
+    </div>
+    <div class="modal-sub" id="qr-msg" style="margin-bottom:1.25rem"></div>
+    <button class="auth-btn" onclick="copyQRUrl()" style="margin-bottom:.5rem">📋 Линк хуулах</button>
+    <button class="btn-outline" onclick="closeQR()" style="width:100%;padding:11px;margin-top:.25rem">Хаах</button>
+  </div>
+</div>
+<!-- ===== Vercel Speed Insights (сайтын хурд/гүйцэтгэлийн хэмжилт) =====
+     Энгийн HTML сайтад зориулсан. Зөвхөн Vercel дээр deploy хийсний дараа ажиллана. -->
+<script>
+  window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>
