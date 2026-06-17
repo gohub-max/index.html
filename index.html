@@ -1374,6 +1374,22 @@ async function refreshLeaderboard(){
   renderLeaderboard();
 }
 
+// Admin самбар нээх бүрд cloud-оос хэрэглэгч + оноог дахин татна
+async function refreshAdminData(){
+  try{
+    var res=await Promise.all([fbGet('users'),fbGet('leaderboard')]);
+    var ru=res[0], rlb=res[1];
+    if(ru.ok && ru.data){
+      var adminEntry=_cache.users?_cache.users[ADMIN_USER]:null;
+      _cache.users=ru.data;
+      if(adminEntry && !_cache.users[ADMIN_USER]) _cache.users[ADMIN_USER]=adminEntry;
+    }
+    if(rlb.ok && rlb.data) _cache.lb=rlb.data;
+  }catch(e){}
+  var ed=document.getElementById('editor');
+  if(ed && ed.classList.contains('show')) renderEditorContent();
+}
+
 // ===== DASHBOARD =====
 function renderDashboard(){
   const stats=getStats(currentUser);
@@ -1543,13 +1559,18 @@ function renderAdminSection(){
 
 function renderUserAdmin(c){
   const users=getUsers();
+  const lb=_cache.lb||{};
   const rows=Object.entries(users).filter(([u])=>u!==ADMIN_USER).map(([u,d])=>{
     const st=getStats(u);
+    const cl=lb[u]||{};
+    // Cloud болон local-оос хамгийн өндөр утгыг авна (оноо зөвхөн өсдөг тул аюулгүй)
+    const tests=Math.max(cl.tests||0, st.tests||0);
+    const score=Math.max(cl.score||0, st.totalCorrect||0);
     const blocked=d.blocked?true:false;
     return `<tr>
       <td><strong>${sanitize(u)}</strong></td>
-      <td>${st.tests||0}</td>
-      <td>${st.totalCorrect||0}</td>
+      <td>${tests}</td>
+      <td>${score}</td>
       <td><span class="status-dot ${blocked?'dot-blocked':'dot-active'}"></span>${blocked?'Блоклосон':'Идэвхтэй'}</td>
       <td style="display:flex;gap:6px">
         <button class="btn-sm danger" onclick="toggleBlock('${u}','${blocked}')">${blocked?'Нээх':'Блоклох'}</button>
@@ -1755,7 +1776,7 @@ function showMain(id){
   if(id==='leaderboard'){document.getElementById('nav-lb')?.classList.add('active');renderLeaderboard();refreshLeaderboard();}
   if(id==='dashboard'){document.getElementById('nav-dash')?.classList.add('active');renderDashboard()}
   if(id==='profile')renderProfile();
-  if(id==='editor'){document.getElementById('nav-editor')?.classList.add('active');renderEditorContent()}
+  if(id==='editor'){document.getElementById('nav-editor')?.classList.add('active');renderEditorContent();refreshAdminData();}
   // Bottom nav active
   ['bn-home','bn-lb','bn-dash','bn-profile','bn-admin'].forEach(b=>document.getElementById(b)?.classList.remove('active'));
   const bnMap={home:'bn-home',leaderboard:'bn-lb',dashboard:'bn-dash',profile:'bn-profile',editor:'bn-admin'};
