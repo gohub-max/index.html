@@ -274,7 +274,7 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
 /* ===== MOBILE BOTTOM NAV ===== */
 .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--card);border-top:1px solid var(--border);padding:8px 0;padding-bottom:calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px rgba(0,0,0,.1)}
 .bottom-nav-inner{display:flex;justify-content:space-around;align-items:center;max-width:480px;margin:0 auto}
-.bn-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 16px;border:none;background:none;cursor:pointer;color:var(--t2);font-family:'Inter',sans-serif;font-size:10px;font-weight:500;border-radius:12px;transition:all .2s;min-width:60px;-webkit-tap-highlight-color:transparent}
+.bn-item{flex:1 1 0;min-width:0;position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border:none;background:none;cursor:pointer;color:var(--t2);font-family:'Inter',sans-serif;font-size:10px;font-weight:500;border-radius:12px;transition:all .2s;-webkit-tap-highlight-color:transparent}
 .bn-item.active{color:var(--purple)}
 .bn-item .bn-icon{font-size:20px;line-height:1}
 .bn-item.active .bn-icon{transform:scale(1.1)}
@@ -401,6 +401,45 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
 .confirm-btns .btn-outline{flex:1;padding:12px;font-size:14px}
 .confirm-btns .btn-danger{flex:1;font-family:'Inter',sans-serif;padding:12px;background:var(--red);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
 .confirm-btns .btn-danger:hover{filter:brightness(.9)}
+
+/* ===== WRONG BANK (Алдааны сан) ===== */
+.bn-badge{position:absolute;top:3px;left:50%;margin-left:5px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:var(--red);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 1px 4px rgba(225,112,85,.5)}
+.wb-header{padding:1.5rem 0 1rem}
+.wb-header h2{font-size:22px;font-weight:700;margin-bottom:.4rem}
+.wb-header p{font-size:14px;color:var(--t2);line-height:1.6;max-width:560px}
+.wb-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem;box-shadow:var(--sh)}
+.wb-count{font-size:14px;color:var(--t2)}
+.wb-count-num{font-size:24px;font-weight:700;color:var(--red);margin-right:4px}
+.wb-actions{display:flex;gap:8px;flex-wrap:wrap}
+.wb-actions .btn-filled,.wb-actions .btn-outline{flex:0 0 auto;padding:10px 16px;font-size:14px}
+.wb-actions .btn-filled:disabled,.wb-actions .btn-outline:disabled{opacity:.45;cursor:not-allowed}
+.wb-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem}
+.wb-pill{font-family:'Inter',sans-serif;font-size:13px;padding:7px 14px;border-radius:99px;border:1.5px solid var(--border);background:var(--card);color:var(--t2);cursor:pointer;transition:all .2s}
+.wb-pill:hover{border-color:var(--pl);color:var(--purple)}
+.wb-pill.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.wb-card{position:relative;background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:1.25rem 1.25rem 1.1rem;margin-bottom:1rem;box-shadow:var(--sh)}
+.wb-card-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:.7rem;padding-right:28px}
+.wb-badge{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.4px;color:var(--tc,var(--purple));background:rgba(108,92,231,.09);padding:4px 10px;border-radius:99px}
+.wb-times{font-size:12px;font-weight:500;color:var(--red);background:rgba(225,112,85,.1);padding:4px 10px;border-radius:99px}
+.wb-q{font-size:15px;font-weight:500;line-height:1.6;margin-bottom:.85rem}
+.wb-correct{font-size:14px;color:var(--text);line-height:1.5;padding:10px 14px;background:rgba(0,184,148,.08);border:1px solid rgba(0,184,148,.25);border-radius:10px}
+.wb-correct-tag{font-size:11px;font-weight:600;color:var(--green);margin-right:6px;white-space:nowrap}
+.wb-exp{margin-top:10px;padding:11px 14px;background:rgba(108,92,231,.06);border-left:3px solid var(--purple);border-radius:0 10px 10px 0;font-size:13px;color:var(--t2);line-height:1.6}
+.wb-del{position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:var(--card);color:var(--t2);cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.wb-del:hover{border-color:var(--red);color:var(--red)}
+.wb-empty{text-align:center;padding:3rem 1.5rem;background:var(--card);border:1.5px dashed var(--border);border-radius:18px}
+.wb-empty-icon{font-size:42px;margin-bottom:1rem}
+.wb-empty-title{font-size:18px;font-weight:600;margin-bottom:.5rem}
+.wb-empty-sub{font-size:14px;color:var(--t2);line-height:1.7;max-width:380px;margin:0 auto}
+@media(max-width:600px){
+  .wb-header{padding:.5rem 0 1rem}
+  .wb-header h2{font-size:20px}
+  .wb-toolbar{padding:.85rem 1rem;flex-direction:column;align-items:stretch}
+  .wb-actions{justify-content:stretch}
+  .wb-actions .btn-filled,.wb-actions .btn-outline{flex:1}
+  .wb-q{font-size:14px}
+  .wb-card{padding:1.1rem 1rem 1rem}
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -418,6 +457,7 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
         <button class="nav-btn active" id="nav-home" onclick="showMain('home')">Нүүр</button>
         <button class="nav-btn" id="nav-lb" onclick="showMain('leaderboard')">🏆</button>
         <button class="nav-btn" id="nav-dash" onclick="showMain('dashboard')">📊</button>
+        <button class="nav-btn" id="nav-wrong" onclick="showMain('wrongbank')" title="Алдааны сан">📕</button>
         <button class="nav-btn admin-btn" id="nav-editor" onclick="showMain('editor')" style="display:none">✏️ Admin</button>
       </div>
       <div class="streak-chip" id="streak-nav" style="display:none">🔥 <span id="streak-nav-num">0</span></div>
@@ -579,6 +619,17 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
     </div>
   </div>
 
+  <!-- WRONG BANK (Алдааны сан) -->
+  <div class="screen" id="wrongbank">
+    <div class="wb-header">
+      <h2>📕 Алдааны сан</h2>
+      <p>Буруу хариулсан асуултууд энд автоматаар хадгалагдана. Дараа нь зөв хариулбал автоматаар хасагдана.</p>
+    </div>
+    <div class="wb-toolbar" id="wb-toolbar"></div>
+    <div class="wb-filter" id="wb-filter"></div>
+    <div id="wb-list"></div>
+  </div>
+
   <!-- PROFILE -->
   <div class="screen" id="profile">
     <div class="profile-wrap">
@@ -629,6 +680,7 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
     <button class="bn-item active" id="bn-home" onclick="showMain('home')"><span class="bn-icon">🏠</span>Нүүр</button>
     <button class="bn-item" id="bn-lb" onclick="showMain('leaderboard')"><span class="bn-icon">🏆</span>Шилдэг</button>
     <button class="bn-item" id="bn-dash" onclick="showMain('dashboard')"><span class="bn-icon">📊</span>Статистик</button>
+    <button class="bn-item" id="bn-wrong" onclick="showMain('wrongbank')"><span class="bn-icon">📕</span>Алдаа<span class="bn-badge" id="bn-wrong-badge" style="display:none">0</span></button>
     <button class="bn-item" id="bn-profile" onclick="showMain('profile')"><span class="bn-icon">👤</span>Профайл</button>
     <button class="bn-item" id="bn-admin" onclick="showMain('editor')" style="display:none"><span class="bn-icon">⚙️</span>Admin</button>
   </div>
@@ -640,6 +692,8 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
 const ADMIN_USER='admin';
 const ADMIN_PASS='admin1234';
 const NAME_CHANGE_DAYS=15;
+// Хариултын үсгүүд (5 хүртэл сонголтыг дэмжинэ — ЭЕШ-ийн асуултууд 5 сонголттой)
+const OPT_LETTERS=['А','Б','В','Г','Д','Е'];
 
 // ===== TOPICS =====
 const TOPICS=[
@@ -774,7 +828,7 @@ async function fbUpdate(path,data){
 }
 
 // ===== LOCAL CACHE (for sync UI) =====
-var _cache={users:{},codes:[],stats:{},streak:{},pwdmeta:{},q:{},lb:{}};
+var _cache={users:{},codes:[],stats:{},streak:{},pwdmeta:{},q:{},lb:{},wrong:{}};
 var _loaded=false;
 var _cloudOk=false; // Firebase холбогдсон эсэх (true=cloud, false=зөвхөн local)
 
@@ -952,6 +1006,20 @@ function savePwdMeta(u,d){
   localStorage.setItem('nt_pwdmeta_'+u,JSON.stringify(d));
 }
 
+// Алдааны сан — local per user (stats шиг тухайн төхөөрөмж дээр хадгалагдана)
+// Бүтэц: [{q, opts, ans, exp, topic, wrongCount, lastWrong, addedAt}]
+function getWrongBank(u){
+  if(_cache.wrong[u]) return _cache.wrong[u];
+  var arr=[];
+  try{var p=JSON.parse(localStorage.getItem('nt_wrong_'+u)||'[]'); if(Array.isArray(p))arr=p;}catch(e){}
+  _cache.wrong[u]=arr;
+  return arr;
+}
+function saveWrongBank(u,arr){
+  _cache.wrong[u]=arr;
+  localStorage.setItem('nt_wrong_'+u,JSON.stringify(arr));
+}
+
 
 // ===== SECURITY: Rate limit =====
 const _attempts={};
@@ -1080,6 +1148,7 @@ function enterApp(){
   }
   try{updateStreakUI();}catch(e){console.error('updateStreakUI',e);}
   try{updateLevelUI();}catch(e){console.error('updateLevelUI',e);}
+  try{updateWrongNav();}catch(e){console.error('updateWrongNav',e);}
   try{renderTopicGrid();}catch(e){console.error('renderTopicGrid',e);}
   try{renderLeaderboard();}catch(e){console.error('renderLeaderboard',e);}
   showMain('home');
@@ -1152,7 +1221,8 @@ function renderTopicGrid(){
 
 // ===== TEST =====
 function shuffleOpts(q){
-  const indices=[0,1,2,3].sort(()=>Math.random()-.5);
+  const n=(q.opts||[]).length;
+  const indices=Array.from({length:n},(_,i)=>i).sort(()=>Math.random()-.5);
   return{q:q.q,opts:indices.map(i=>q.opts[i]),ans:indices.indexOf(q.ans),exp:q.exp,topic:q.topic};
 }
 
@@ -1178,9 +1248,9 @@ function loadQ(){
   document.getElementById('explanation').style.display='none';
   document.getElementById('explanation').textContent=q.exp||'';
   const opts=document.getElementById('options');opts.innerHTML='';
-  ['А','Б','В','Г'].forEach((l,i)=>{
+  q.opts.forEach((optText,i)=>{
     const d=document.createElement('div');d.className='opt';
-    d.innerHTML=`<div class="opt-letter">${l}</div><div class="opt-text">${q.opts[i]}</div>`;
+    d.innerHTML=`<div class="opt-letter">${OPT_LETTERS[i]||(i+1)}</div><div class="opt-text">${optText}</div>`;
     d.onclick=()=>selAns(i,q.ans,q.exp);
     opts.appendChild(d);
   });
@@ -1208,7 +1278,7 @@ function selAns(idx,correct,exp){
   });
   if(idx===correct)score++;
   totalTime+=timerSec>0?timerSec-timeLeft:0;
-  userAns.push({q:testQueue[cur].q,chosen:idx,ans:correct,opts:testQueue[cur].opts,ok:idx===correct,topic:testQueue[cur].topic});
+  userAns.push({q:testQueue[cur].q,chosen:idx,ans:correct,opts:testQueue[cur].opts,ok:idx===correct,topic:testQueue[cur].topic,exp:testQueue[cur].exp});
   if(exp)document.getElementById('explanation').style.display='block';
   document.getElementById('btn-next').disabled=false;
 }
@@ -1216,7 +1286,7 @@ function selAns(idx,correct,exp){
 function autoTO(correct,exp){
   document.querySelectorAll('.opt').forEach((o,i)=>{o.onclick=null;if(i===correct)o.classList.add('correct')});
   totalTime+=timerSec;
-  userAns.push({q:testQueue[cur].q,chosen:-1,ans:correct,opts:testQueue[cur].opts,ok:false,topic:testQueue[cur].topic});
+  userAns.push({q:testQueue[cur].q,chosen:-1,ans:correct,opts:testQueue[cur].opts,ok:false,topic:testQueue[cur].topic,exp:testQueue[cur].exp});
   if(exp)document.getElementById('explanation').style.display='block';
   document.getElementById('btn-next').disabled=false;
 }
@@ -1242,10 +1312,13 @@ function showResult(){
   });
   recordStreak();
   recordStats(pct);
+  const wbAdded=recordWrongBank();
+  updateWrongNav();
   updateLevelUI();
   renderLeaderboard();
   getAIAdvice(pct);
   showScreen('result');
+  if(wbAdded>0)setTimeout(()=>showToast('📕 '+wbAdded+' асуулт Алдааны санд нэмэгдлээ'),600);
 }
 
 function recordStats(pct){
@@ -1266,6 +1339,152 @@ function recordStats(pct){
   const key=today+'_'+nowH;
   stats.activity[key]=(stats.activity[key]||0)+1;
   saveStats(currentUser,stats);
+}
+
+// ===== АЛДААНЫ САН (Mistakes bank) =====
+// Тест дуусахад: буруу хариулсан асуултыг санд автоматаар нэмнэ,
+// өмнө нь алдаж байсан асуултыг зөв хариулбал "сурсан" гэж үзэн хасна.
+let wbFilter='all';
+function recordWrongBank(){
+  if(!currentUser) return 0;
+  const bank=getWrongBank(currentUser);
+  let changed=false, added=0;
+  userAns.forEach(a=>{
+    const idx=bank.findIndex(it=>it.q===a.q);
+    if(!a.ok){
+      if(idx===-1){
+        bank.push({q:a.q,opts:a.opts,ans:a.ans,exp:a.exp||'',topic:a.topic,wrongCount:1,lastWrong:Date.now(),addedAt:Date.now()});
+        added++;
+      }else{
+        bank[idx].wrongCount=(bank[idx].wrongCount||1)+1;
+        bank[idx].lastWrong=Date.now();
+        bank[idx].opts=a.opts; bank[idx].ans=a.ans; // асуулт засагдсан байж болзошгүй тул шинэчилнэ
+        if(a.exp)bank[idx].exp=a.exp;
+      }
+      changed=true;
+    }else if(idx!==-1){
+      bank.splice(idx,1); // зөв хариуллаа → сангаас хасна
+      changed=true;
+    }
+  });
+  if(changed)saveWrongBank(currentUser,bank);
+  return added;
+}
+
+// Нав дээрх алдааны тоог шинэчилнэ
+function updateWrongNav(){
+  const n=currentUser?getWrongBank(currentUser).length:0;
+  const top=document.getElementById('nav-wrong');
+  if(top)top.textContent=n>0?('📕 '+n):'📕';
+  const badge=document.getElementById('bn-wrong-badge');
+  if(badge){badge.textContent=n>99?'99+':String(n);badge.style.display=n>0?'flex':'none';}
+}
+
+function setWbFilter(f){wbFilter=f;renderWrongBank();}
+
+function renderWrongBank(){
+  if(!currentUser)return;
+  const bank=getWrongBank(currentUser);
+  const total=bank.length;
+  // Хэрэв сонгосон шүүлтүүрт нэг ч асуулт байхгүй бол "бүгд" рүү буцаана
+  if(wbFilter!=='all' && !bank.some(it=>it.topic===wbFilter))wbFilter='all';
+
+  // Toolbar
+  const tb=document.getElementById('wb-toolbar');
+  if(tb){
+    tb.innerHTML=`
+      <div class="wb-count"><span class="wb-count-num">${total}</span> асуулт давтах шаардлагатай</div>
+      <div class="wb-actions">
+        <button class="btn-filled" onclick="practiceWrong()" ${total?'':'disabled'}>🔁 Эдгээрийг давтах</button>
+        <button class="btn-outline" onclick="clearWrongBank()" ${total?'':'disabled'}>🗑 Цэвэрлэх</button>
+      </div>`;
+  }
+
+  const flt=document.getElementById('wb-filter');
+  const list=document.getElementById('wb-list');
+
+  // Хоосон төлөв
+  if(total===0){
+    if(flt)flt.innerHTML='';
+    if(list)list.innerHTML=`
+      <div class="wb-empty">
+        <div class="wb-empty-icon">🎯</div>
+        <div class="wb-empty-title">Алдааны сан хоосон байна</div>
+        <div class="wb-empty-sub">Тест өгөхөд буруу хариулсан асуултууд энд автоматаар хадгалагдаж, дараа нь давтан судлах боломжтой болно.</div>
+        <button class="btn-filled" style="max-width:240px;margin:1.5rem auto 0" onclick="showMain('home')">Тест эхлэх →</button>
+      </div>`;
+    return;
+  }
+
+  // Сэдвээр шүүх pill-үүд (зөвхөн санд байгаа сэдвүүд)
+  const counts={};
+  bank.forEach(it=>{counts[it.topic]=(counts[it.topic]||0)+1;});
+  if(flt){
+    let pills=`<button class="wb-pill ${wbFilter==='all'?'active':''}" onclick="setWbFilter('all')">Бүгд (${total})</button>`;
+    TOPICS.forEach(t=>{
+      if(!counts[t.id])return;
+      pills+=`<button class="wb-pill ${wbFilter===t.id?'active':''}" onclick="setWbFilter('${t.id}')">${t.icon} ${t.name.split(' ')[0]} (${counts[t.id]})</button>`;
+    });
+    flt.innerHTML=pills;
+  }
+
+  // Жагсаалт — хамгийн их алдсанаар эрэмбэлнэ
+  const items=bank
+    .map((it,i)=>({it,i}))
+    .filter(x=>wbFilter==='all'||x.it.topic===wbFilter)
+    .sort((a,b)=>(b.it.wrongCount||1)-(a.it.wrongCount||1));
+  if(list){
+    list.innerHTML=items.map(({it,i})=>{
+      const tp=TOPICS.find(t=>t.id===it.topic);
+      const correct=(it.opts&&it.ans>=0&&it.opts[it.ans]!=null)?it.opts[it.ans]:'—';
+      return `<div class="wb-card">
+        <button class="wb-del" title="Сангаас хасах" onclick="removeWrong(${i})">✕</button>
+        <div class="wb-card-top">
+          ${tp?`<span class="wb-badge" style="--tc:${tp.color}">${tp.icon} ${tp.name}</span>`:''}
+          <span class="wb-times">🔁 ${it.wrongCount||1} удаа алдсан</span>
+        </div>
+        <div class="wb-q">${sanitize(it.q)}</div>
+        <div class="wb-correct"><span class="wb-correct-tag">✓ Зөв хариулт</span> ${sanitize(correct)}</div>
+        ${it.exp?`<div class="wb-exp">${sanitize(it.exp)}</div>`:''}
+      </div>`;
+    }).join('');
+  }
+}
+
+function practiceWrong(){
+  if(!currentUser)return;
+  const bank=getWrongBank(currentUser);
+  const items=(wbFilter==='all')?bank:bank.filter(it=>it.topic===wbFilter);
+  if(!items.length)return;
+  timerSec=parseInt(document.getElementById('timer-sec')?.value)||0;
+  let pool=items.map(it=>shuffleOpts({q:it.q,opts:it.opts,ans:it.ans,exp:it.exp,topic:it.topic}));
+  pool=pool.sort(()=>Math.random()-.5);
+  testQueue=pool;cur=0;score=0;totalTime=0;userAns=[];
+  showScreen('test');loadQ();
+}
+
+function removeWrong(idx){
+  if(!currentUser)return;
+  const bank=getWrongBank(currentUser);
+  if(idx<0||idx>=bank.length)return;
+  bank.splice(idx,1);
+  saveWrongBank(currentUser,bank);
+  updateWrongNav();
+  renderWrongBank();
+  showToast('Сангаас хаслаа');
+}
+
+function clearWrongBank(){
+  if(!currentUser)return;
+  const bank=getWrongBank(currentUser);
+  if(!bank.length)return;
+  mConfirm('Алдааны санг цэвэрлэх үү?','Хадгалагдсан '+bank.length+' асуулт бүгд устана.','Цэвэрлэх',function(){
+    saveWrongBank(currentUser,[]);
+    wbFilter='all';
+    updateWrongNav();
+    renderWrongBank();
+    showToast('Алдааны сан цэвэрлэгдлээ');
+  },'🗑');
 }
 
 async function getAIAdvice(pct){
@@ -1761,14 +1980,14 @@ function renderEditor(){
   (allQ[editorTopic]||[]).forEach((q,qi)=>{
     const card=document.createElement('div');card.className='qe-card';card.dataset.qi=qi;
     let oh='<div class="opts-grid">';
-    ['А','Б','В','Г'].forEach((_,i)=>{oh+=`<div class="opt-inp-wrap"><input type="radio" class="opt-radio" name="ans_${qi}" value="${i}" ${q.ans===i?'checked':''}><input class="opt-inp" data-qi="${qi}" data-oi="${i}" value="${(q.opts[i]||'').replace(/"/g,'&quot;')}" placeholder="Хариулт"></div>`});
+    OPT_LETTERS.slice(0,5).forEach((ltr,i)=>{oh+=`<div class="opt-inp-wrap"><input type="radio" class="opt-radio" name="ans_${qi}" value="${i}" ${q.ans===i?'checked':''}><input class="opt-inp" data-qi="${qi}" data-oi="${i}" value="${(q.opts[i]||'').replace(/"/g,'&quot;')}" placeholder="${ltr} хариулт"></div>`});
     oh+='</div>';
     card.innerHTML=`<div class="qe-num">Асуулт ${qi+1}</div><button class="delete-btn" onclick="deleteQ(${qi})" title="Устгах">✕</button><textarea class="qe-inp" rows="2" placeholder="Асуултын текст...">${q.q}</textarea>${oh}<div class="exp-label">Тайлбар:</div><input class="qe-exp-inp" value="${(q.exp||'').replace(/"/g,'&quot;')}" placeholder="Зөв хариултын тайлбар...">`;
     list.appendChild(card);
   });
 }
 
-function addQ(){if(!isAdmin())return;if(!allQ[editorTopic])allQ[editorTopic]=[];allQ[editorTopic].push({q:'',opts:['','','',''],ans:0,exp:''});renderEditor();setTimeout(()=>document.querySelector('.q-editor-list .qe-card:last-child')?.scrollIntoView({behavior:'smooth'}),100)}
+function addQ(){if(!isAdmin())return;if(!allQ[editorTopic])allQ[editorTopic]=[];allQ[editorTopic].push({q:'',opts:['','','','',''],ans:0,exp:''});renderEditor();setTimeout(()=>document.querySelector('.q-editor-list .qe-card:last-child')?.scrollIntoView({behavior:'smooth'}),100)}
 
 function deleteQ(qi){if(!isAdmin())return;mConfirm('Энэ асуултыг устгах уу?','Устгасан бол буцаах боломжгүй.','Устгах',function(){allQ[editorTopic].splice(qi,1);renderEditor();},'🗑️');}
 
@@ -1778,7 +1997,8 @@ function saveQuestions(){
   cards.forEach(card=>{
     const qi=card.dataset.qi;
     const qText=card.querySelector('textarea').value.trim();if(!qText)return;
-    const opts=[];for(let i=0;i<4;i++)opts.push(card.querySelector(`input[data-oi="${i}"]`)?.value.trim()||'');
+    const opts=[];for(let i=0;i<5;i++)opts.push(card.querySelector(`input[data-oi="${i}"]`)?.value.trim()||'');
+    while(opts.length>2 && opts[opts.length-1]==='')opts.pop();
     const ansEl=card.querySelector(`input[name="ans_${qi}"]:checked`);
     const ans=ansEl?parseInt(ansEl.value):0;
     const exp=card.querySelector('.qe-exp-inp')?.value.trim()||'';
@@ -1796,7 +2016,7 @@ function showMain(id){
   var authEl=document.getElementById('auth');
   authEl.classList.remove('show');
   authEl.style.display='none';
-  ['home','test','result','leaderboard','dashboard','profile','editor'].forEach(function(s){
+  ['home','test','result','leaderboard','dashboard','profile','editor','wrongbank'].forEach(function(s){
     var el=document.getElementById(s);
     if(el){el.classList.remove('show');el.style.display='';}
   });
@@ -1807,11 +2027,12 @@ function showMain(id){
   if(id==='home')document.getElementById('nav-home')?.classList.add('active');
   if(id==='leaderboard'){document.getElementById('nav-lb')?.classList.add('active');renderLeaderboard();refreshLeaderboard();}
   if(id==='dashboard'){document.getElementById('nav-dash')?.classList.add('active');renderDashboard()}
+  if(id==='wrongbank'){document.getElementById('nav-wrong')?.classList.add('active');renderWrongBank()}
   if(id==='profile')renderProfile();
   if(id==='editor'){document.getElementById('nav-editor')?.classList.add('active');renderEditorContent();refreshAdminData();}
   // Bottom nav active
-  ['bn-home','bn-lb','bn-dash','bn-profile','bn-admin'].forEach(b=>document.getElementById(b)?.classList.remove('active'));
-  const bnMap={home:'bn-home',leaderboard:'bn-lb',dashboard:'bn-dash',profile:'bn-profile',editor:'bn-admin'};
+  ['bn-home','bn-lb','bn-dash','bn-wrong','bn-profile','bn-admin'].forEach(b=>document.getElementById(b)?.classList.remove('active'));
+  const bnMap={home:'bn-home',leaderboard:'bn-lb',dashboard:'bn-dash',wrongbank:'bn-wrong',profile:'bn-profile',editor:'bn-admin'};
   if(bnMap[id])document.getElementById(bnMap[id])?.classList.add('active');
   // Дэлгэцийн дээшээ гүйлгэ
   window.scrollTo({top:0,behavior:'smooth'});
