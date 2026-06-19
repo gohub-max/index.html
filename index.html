@@ -783,7 +783,7 @@ const DQ={
 // ===== STATE =====
 let allQ=JSON.parse(JSON.stringify(DQ));
 let selTopics=[],testQueue=[],cur=0,score=0,timerInt=null,timeLeft=15,totalTime=0,userAns=[];
-let timerSec=15,editorTopic=TOPICS[0].id,currentUser=null,adminSection='users';
+let timerSec=15,editorTopic=TOPICS[0].id,currentUser=null,currentUid=null,adminSection='users';
 
 // ===== STORAGE HELPERS =====
 // ===== FIREBASE CONFIG =====
@@ -805,6 +805,9 @@ const AUTH_CONFIG={
   adminUid:'9GKPS9kGwSNad8PdFPxmCUdAZv82'
 };
 let _fbAuth=null; // {idToken, refreshToken, uid, email, expiresAt}
+// Сурагчид нэрээ бичсэн ч дотооддоо синтетик и-мэйлээр Firebase Auth ашиглана (нэр@домэйн).
+// Нэр кирилл/хоосон зайтай байж болох тул нэрийг хэшлэн ASCII и-мэйл үүсгэнэ.
+const STUDENT_EMAIL_DOMAIN='niigem.local';
 
 // ===== CLOUD STORAGE (Firebase) =====
 // Энгийн fetch-based Firebase REST API — SDK шаардлагагүй
@@ -886,6 +889,82 @@ async function fbSetAuth(path,data){
     _cloudOk=r.ok;return r.ok;
   }catch(e){_cloudOk=false;return false;}
 }
+// Authenticated PATCH (leaderboard зэрэг хэсэгчилсэн шинэчлэлд)
+async function fbUpdateAuth(path,data){
+  try{
+    const token=await fbAuthToken();
+    const url=FIREBASE_CONFIG.databaseURL+'/'+path+'.json'+(token?('?auth='+encodeURIComponent(token)):'');
+    const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    _cloudOk=r.ok;return r.ok;
+  }catch(e){_cloudOk=false;return false;}
+}
+
+// ===== СУРАГЧИЙН НЭВТРЭЛТ (нэр → синтетик и-мэйл) =====
+// Нэрийг SHA-256-аар хэшлэн ASCII и-мэйл болгоно (кирилл/хоосон зай ч ажиллана). Эргэлт буцалтгүй боловч тогтмол.
+async function studentEmail(name){
+  const lower=String(name||'').trim().toLowerCase();
+  try{
+    const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(lower));
+    const hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    return 'u'+hex.slice(0,40)+'@'+STUDENT_EMAIL_DOMAIN;
+  }catch(e){
+    // Fallback: зөвхөн ASCII тэмдэгт үлдээх
+    const safe=lower.replace(/[^a-z0-9._-]/g,'')||('u'+lower.length);
+    return safe+'@'+STUDENT_EMAIL_DOMAIN;
+  }
+}
+async function fbSignUpEmail(email,password){
+  const r=await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key='+AUTH_CONFIG.apiKey,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:email,password:password,returnSecureToken:true})
+  });
+  const d=await r.json();
+  if(!r.ok||!d.idToken)throw new Error((d.error&&d.error.message)||'SIGNUP_FAILED');
+  _fbAuth={idToken:d.idToken,refreshToken:d.refreshToken,uid:d.localId,email:d.email,expiresAt:Date.now()+(parseInt(d.expiresIn||'3600',10)*1000)};
+  try{localStorage.setItem('nt_fbauth',JSON.stringify(_fbAuth));}catch(e){}
+  return _fbAuth;
+}
+async function fbChangePassword(newPassword){
+  const token=await fbAuthToken();
+  if(!token)throw new Error('NO_SESSION');
+  const r=await fetch('https://identitytoolkit.googleapis.com/v1/accounts:update?key='+AUTH_CONFIG.apiKey,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({idToken:token,password:newPassword,returnSecureToken:true})
+  });
+  const d=await r.json();
+  if(!r.ok)throw new Error((d.error&&d.error.message)||'UPDATE_FAILED');
+  if(d.idToken){_fbAuth.idToken=d.idToken;if(d.refreshToken)_fbAuth.refreshToken=d.refreshToken;_fbAuth.expiresAt=Date.now()+(parseInt(d.expiresIn||'3600',10)*1000);try{localStorage.setItem('nt_fbauth',JSON.stringify(_fbAuth));}catch(e){}}
+  return true;
+}
+// users/<uid> профайл байхгүй бол үүсгэх
+async function ensureProfile(name){
+  if(!_fbAuth)return;
+  const uid=_fbAuth.uid;
+  try{const r=await fbGet('users/'+uid);if(!(r.ok&&r.data))await fbSetAuth('users/'+uid,{displayName:name,blocked:false,joinedAt:Date.now()});}catch(e){}
+}
+// Хуучин (нэрээр түлхүүрлэсэн) бүртгэлийн оноо/streak-ийг uid рүү шилжүүлэх
+async function migrateLegacy(name){
+  if(!_fbAuth)return;
+  const uid=_fbAuth.uid;
+  try{const r=await fbGet('leaderboard/'+name);if(r.ok&&r.data){const e=r.data;e.name=name;await fbUpdateAuth('leaderboard/'+uid,e);}}catch(e){}
+  try{const r=await fbGet('streaks/'+name);if(r.ok&&r.data){await fbSetAuth('streaks/'+uid,r.data);localStorage.setItem('nt_streak_'+name,JSON.stringify(r.data));}}catch(e){}
+  try{await fbSetAuth('users/'+uid,{displayName:name,blocked:false,joinedAt:Date.now()});}catch(e){}
+}
+// Нэвтрэхэд cloud-оос streak-ээ татаж local-той тулгана (хамгийн шинийг авна)
+async function syncStreakFromCloud(){
+  if(!_fbAuth||!currentUser)return;
+  try{
+    const r=await fbGet('streaks/'+_fbAuth.uid);
+    if(r.ok&&r.data){
+      let loc;try{loc=JSON.parse(localStorage.getItem('nt_streak_'+currentUser)||'null');}catch(e){loc=null;}
+      if(!loc||String(r.data.lastDate||'')>=String(loc.lastDate||'')){
+        _cache.streak[currentUser]=r.data;
+        localStorage.setItem('nt_streak_'+currentUser,JSON.stringify(r.data));
+        try{updateStreakUI();}catch(e){}
+      }
+    }
+  }catch(e){}
+}
 
 // ===== LOCAL CACHE (for sync UI) =====
 var _cache={users:{},codes:[],stats:{},streak:{},pwdmeta:{},q:{},lb:{},wrong:{}};
@@ -908,8 +987,8 @@ async function loadAllData(){
   if(ru.ok){
     var cu=ru.data||{};
     if(Object.keys(cu).length===0 && Object.keys(lu).length>0){
-      // Cloud хоосон ч энэ төхөөрөмж дээр бүртгэл бий → local-оо cloud руу нүүлгэнэ
-      _cache.users=lu; fbSet('users',lu);
+      // Cloud хоосон — users нь зөвхөн админ бичдэг тул local-оо зөвхөн санах ойд хадгална
+      _cache.users=lu;
     }else{
       _cache.users=cu;
     }
@@ -944,35 +1023,20 @@ async function loadAllData(){
     _cache.q=lq;
   }
 
-  // ---- LEADERBOARD (бүх хэрэглэгчийн оноо, cloud) ----
+  // ---- LEADERBOARD (бүх хэрэглэгчийн оноо, cloud, uid-ээр түлхүүрлэсэн) ----
   _cache.lb = rlb.ok ? (rlb.data||{}) : {};
 
-  // ---- STREAKS (өдрийн дараалал, cloud) ----
-  var cstreaks = rst.ok ? (rst.data||{}) : {};
+  // ---- STREAKS ----
+  // Cloud streak нь одоо uid-ээр түлхүүрлэгдсэн. Тухайн хэрэглэгчийнхийг нэвтрэх үед
+  // syncStreakFromCloud()-оор татна. Энд зөвхөн local cache-ийг (нэрээр) бэлдэнэ.
   _cache.streak = {};
-  Object.keys(cstreaks).forEach(function(u){ _cache.streak[u]=cstreaks[u]; });
-  // Энэ төхөөрөмж дээрх local streak-уудыг нэгтгэх (хуучин streak-ийг алдахгүй)
   try{
     for(var i=0;i<localStorage.length;i++){
       var k=localStorage.key(i);
       if(!k || k.indexOf('nt_streak_')!==0) continue;
-      var su=k.slice(10); // 'nt_streak_' = 10 тэмдэгт
+      var su=k.slice(10);
       var loc; try{loc=JSON.parse(localStorage.getItem(k));}catch(e){continue;}
-      if(!loc) continue;
-      var cl=_cache.streak[su];
-      if(!cl){
-        // Cloud дээр байхгүй → local-оо cloud руу нүүлгэнэ
-        _cache.streak[su]=loc;
-        if(rst.ok) fbSet('streaks/'+su,loc);
-      }else if(String(loc.lastDate||'') > String(cl.lastDate||'')){
-        // Local илүү шинэ → local-оор шинэчилнэ
-        var mg={streak:loc.streak||0,lastDate:loc.lastDate||'',max:Math.max(loc.max||0,cl.max||0)};
-        _cache.streak[su]=mg;
-        if(rst.ok) fbSet('streaks/'+su,mg);
-      }else{
-        // Cloud илүү шинэ → cloud-ийг авна, max-ийг нэгтгэнэ
-        _cache.streak[su]={streak:cl.streak||0,lastDate:cl.lastDate||'',max:Math.max(loc.max||0,cl.max||0)};
-      }
+      if(loc) _cache.streak[su]=loc;
     }
   }catch(e){}
 
@@ -984,7 +1048,7 @@ async function loadAllData(){
 function getUsers(){return _cache.users||{};}
 function saveUsers(u){
   _cache.users=u;
-  fbSet('users',u);
+  fbSetAuth('users',u); // зөвхөн админ үйлдэл (блок/устгах) дуудна — admin token-той бичнэ
   localStorage.setItem('nt_users',JSON.stringify(u));
 }
 
@@ -1034,13 +1098,12 @@ function getStats(u){
   catch(e){return def;}
 }
 function saveStats(u,d){
-  _cache.stats[u]=d;
+  _cache.stats[u]=d; // local stats — нэрээр (төхөөрөмж дотор)
   localStorage.setItem('nt_stats_'+u,JSON.stringify(d));
-  // Sync score to leaderboard cloud (+ local cache шууд шинэчилнэ)
+  // Leaderboard cloud — uid-ээр түлхүүрлэж, өөрийн token-той бичнэ (зөвхөн өөрийн оноог)
   var lbEntry={score:d.totalCorrect||0,tests:d.tests||0,wins:d.wins||0,streak:(getStreak(u).streak||0),name:u};
   if(!_cache.lb)_cache.lb={};
-  _cache.lb[u]=lbEntry;
-  fbUpdate('leaderboard/'+u,lbEntry);
+  if(currentUid){ _cache.lb[currentUid]=lbEntry; fbUpdateAuth('leaderboard/'+currentUid,lbEntry); }
 }
 
 // Streak — local
@@ -1050,9 +1113,9 @@ function getStreak(u){
   catch(e){return{streak:0,max:0,lastDate:""};}
 }
 function saveStreak(u,d){
-  _cache.streak[u]=d;
+  _cache.streak[u]=d; // local cache — нэрээр (UI)
   localStorage.setItem('nt_streak_'+u,JSON.stringify(d));
-  fbSet('streaks/'+u,d);
+  if(currentUid) fbSetAuth('streaks/'+currentUid,d); // cloud — uid-ээр, өөрийн token-той
 }
 
 // PwdMeta — local
@@ -1126,12 +1189,13 @@ function init(){
     restoreFbAuth();
     const users=getUsers();
     const sess=localStorage.getItem('nt_session');
-    // Админ — Firebase Auth (тохируулсан үед)
-    if(authConfigured() && _fbAuth && _fbAuth.uid===AUTH_CONFIG.adminUid){
-      currentUser=ADMIN_USER; enterApp(); fbAuthToken(); return;
+    // Firebase Auth сесс (админ ЭСВЭЛ сурагч) — _fbAuth байгаа бол сэргээнэ
+    if(authConfigured() && _fbAuth && _fbAuth.uid){
+      currentUser=(_fbAuth.uid===AUTH_CONFIG.adminUid)?ADMIN_USER:(sess||_fbAuth.email||'');
+      enterApp(); fbAuthToken(); return;
     }
-    // Сурагч (эсвэл Firebase Auth тохируулаагүй үеийн legacy админ)
-    if(sess && users[sess] && !users[sess].blocked && !(authConfigured() && users[sess].role==='admin')){
+    // Legacy (Firebase Auth тохируулаагүй үе) — нэрээр сэргээх
+    if(!authConfigured() && sess && users[sess] && !users[sess].blocked){
       currentUser=sess; enterApp(); return;
     }
     showScreen('auth');
@@ -1141,8 +1205,8 @@ function init(){
     restoreFbAuth();
     const users=getUsers();
     const sess=localStorage.getItem('nt_session');
-    if(authConfigured() && _fbAuth && _fbAuth.uid===AUTH_CONFIG.adminUid){currentUser=ADMIN_USER;enterApp();fbAuthToken();return}
-    if(sess && users[sess] && !users[sess].blocked && !(authConfigured() && users[sess].role==='admin')){currentUser=sess;enterApp();return}
+    if(authConfigured() && _fbAuth && _fbAuth.uid){currentUser=(_fbAuth.uid===AUTH_CONFIG.adminUid)?ADMIN_USER:(sess||_fbAuth.email||'');enterApp();fbAuthToken();return}
+    if(!authConfigured() && sess && users[sess] && !users[sess].blocked){currentUser=sess;enterApp();return}
     showScreen('auth');
   });
 }
@@ -1170,29 +1234,52 @@ function doAuth(){
     return;
   }
 
-  // ===== СУРАГЧ — нэр + нууц үг =====
-  const users=getUsers();
-  if(users[u]){
-    if(users[u].blocked){err.textContent='Энэ бүртгэл блоклогдсон.';return}
-    if(authConfigured() && users[u].role==='admin'){err.textContent='Админаар и-мэйл хаягаараа нэвтэрнэ үү.';return}
-    if(users[u].pass!==btoa(p)){err.textContent='Нууц үг буруу.';return}
-    err.textContent='';currentUser=u;localStorage.setItem('nt_session',u);enterApp();return;
+  // ===== СУРАГЧ — нэрээр (дотооддоо синтетик и-мэйлээр Firebase Auth) =====
+  if(!authConfigured()){
+    // Legacy fallback (Firebase Auth тохируулаагүй үед) — хуучин нэр+нууц үг
+    const lusers=getUsers();
+    if(lusers[u]){
+      if(lusers[u].blocked){err.textContent='Энэ бүртгэл блоклогдсон.';return}
+      if(lusers[u].pass!==btoa(p)){err.textContent='Нууц үг буруу.';return}
+      err.textContent='';currentUser=u;localStorage.setItem('nt_session',u);enterApp();return;
+    }
+    const lcodes=getCodes();const lci=lcodes.findIndex(c=>c.code===p&&!c.used);
+    if(lci===-1){err.textContent='Нэвтрэх нэр олдсонгүй. Урилгын код буруу эсвэл ашиглагдсан байна.';return;}
+    err.style.color='var(--green)';err.textContent='✓ Урилгын код зөв! Нууц үгээ тохируулна уу...';setTimeout(function(){err.style.color='';},3000);
+    showSetPassModal(u,lci);return;
   }
-  const codes=getCodes();
-  const codeIdx=codes.findIndex(c=>c.code===p&&!c.used);
-  if(codeIdx===-1){
-    err.textContent='Нэвтрэх нэр олдсонгүй. Урилгын код буруу эсвэл ашиглагдсан байна.';
-    return;
-  }
-  err.textContent='✓ Урилгын код зөв! Нууц үгээ тохируулна уу...';
-  err.style.color='var(--green)';
-  setTimeout(function(){err.style.color='';},3000);
-  showSetPassModal(u,codeIdx);
+  err.style.color='var(--t2)';err.textContent='⏳ Нэвтэрч байна...';
+  (async function(){
+    const email=await studentEmail(u);
+    try{
+      await fbSignIn(email,p); // одоо байгаа (бүртгэлтэй) сурагч
+    }catch(e1){
+      const users=getUsers();const legacy=users[u];
+      if(legacy && legacy.role!=='admin' && legacy.pass===btoa(p)){
+        if(legacy.blocked){err.style.color='';err.textContent='Энэ бүртгэл блоклогдсон.';return;}
+        try{ await fbSignUpEmail(email,p); await migrateLegacy(u); } // хуучин бүртгэлийг uid рүү шилжүүлнэ
+        catch(e2){ err.style.color='';err.textContent='Нууц үг буруу байна.';return; }
+      }else if(!legacy){
+        const codes=getCodes();const codeIdx=codes.findIndex(c=>c.code===p&&!c.used);
+        if(codeIdx!==-1){ err.style.color='var(--green)';err.textContent='✓ Урилгын код зөв! Нууц үгээ тохируулна уу...';setTimeout(function(){err.style.color='';},3000);showSetPassModal(u,codeIdx);return; }
+        err.style.color='';err.textContent='Нэр/нууц үг эсвэл урилгын код буруу байна.';return;
+      }else{
+        err.style.color='';err.textContent='Нууц үг буруу.';return;
+      }
+    }
+    // Амжилттай нэвтэрсэн (signIn эсвэл шинэ signUp)
+    currentUid=_fbAuth.uid;
+    try{ const prof=await fbGet('users/'+currentUid); if(prof.ok&&prof.data&&prof.data.blocked){ fbSignOut();currentUid=null;err.style.color='';err.textContent='Энэ бүртгэл блоклогдсон.';return; } }catch(e){}
+    try{ await ensureProfile(u); }catch(e){}
+    err.style.color='';err.textContent='';
+    currentUser=u;localStorage.setItem('nt_session',u);
+    enterApp();
+  })();
 }
 
 function logout(){
   mConfirm('Гарахдаа итгэлтэй байна уу?','Таны дэвшил хадгалагдана.','Гарах',function(){
-    currentUser=null;localStorage.removeItem('nt_session');fbSignOut();
+    currentUser=null;currentUid=null;localStorage.removeItem('nt_session');fbSignOut();
     selTopics=[];
     document.getElementById('nav-menu').style.display='none';
     document.getElementById('user-chip').style.display='none';
@@ -1209,6 +1296,7 @@ function isAdmin(){
 function isLoggedIn(){return !!currentUser}
 
 function enterApp(){
+  currentUid = _fbAuth ? _fbAuth.uid : null; // uid-ээр түлхүүрлэсэн cloud өгөгдөлд хэрэгтэй
   // Нэвтрэх карт-ыг хамгийн түрүүнд нуу (доор алдаа гарсан ч энэ гацахгүй)
   showMain('home');
   document.getElementById('nav-menu').style.display='flex';
@@ -1234,6 +1322,7 @@ function enterApp(){
   try{updateWrongNav();}catch(e){console.error('updateWrongNav',e);}
   try{renderTopicGrid();}catch(e){console.error('renderTopicGrid',e);}
   try{renderLeaderboard();}catch(e){console.error('renderLeaderboard',e);}
+  try{syncStreakFromCloud();}catch(e){console.error('syncStreakFromCloud',e);}
   showMain('home');
 }
 
@@ -1644,32 +1733,27 @@ function restartTest(){
 // Энэ төхөөрөмж дээрх local stats-ийг max-аар нэгтгэнэ (оноо зөвхөн өсдөг тул аюулгүй).
 function getLeaderboard(){
   var map={};
-  // 1) Cloud-оос ирсэн оноонууд (бусад хэрэглэгчид)
+  // 1) Cloud оноонууд — uid-ээр түлхүүрлэгдсэн, нэр нь "name" талбарт
   var cloud=_cache.lb||{};
-  Object.keys(cloud).forEach(function(u){
-    if(u===ADMIN_USER)return;
-    var c=cloud[u]||{};
-    map[u]={name:u,score:c.score||0,tests:c.tests||0,wins:c.wins||0,streak:c.streak||0};
+  Object.keys(cloud).forEach(function(key){
+    if(key===AUTH_CONFIG.adminUid)return; // админыг харуулахгүй
+    var c=cloud[key]||{};
+    var nm=c.name||key;
+    if(nm===ADMIN_USER)return;
+    map[key]={name:nm,score:c.score||0,tests:c.tests||0,wins:c.wins||0,streak:c.streak||0};
   });
-  // 2) Энэ төхөөрөмж дээрх local stats-ийг нэгтгэх (хамгийн шинэ оноо)
-  var users=getUsers();
-  Object.keys(users).forEach(function(u){
-    if(u===ADMIN_USER)return;
-    var s=getStats(u), st=getStreak(u);
-    if(!map[u])map[u]={name:u,score:0,tests:0,wins:0,streak:0};
-    map[u].score=Math.max(map[u].score, s.totalCorrect||0);
-    map[u].tests=Math.max(map[u].tests, s.tests||0);
-    map[u].wins=Math.max(map[u].wins, s.wins||0);
-    if(st&&st.streak)map[u].streak=Math.max(map[u].streak, st.streak);
-  });
-  // 3) Одоогийн хэрэглэгчийн streak-ийг local-оос (хамгийн шинэ)
-  if(currentUser&&map[currentUser]){
-    var cs=getStreak(currentUser);
-    if(cs)map[currentUser].streak=cs.streak||map[currentUser].streak;
+  // 2) Одоогийн хэрэглэгчийн хамгийн шинэ local оноо/streak-ийг давхарлана (cloud-аас түрүүлж харагдуулна)
+  if(currentUid){
+    var s=getStats(currentUser), st=getStreak(currentUser);
+    if(!map[currentUid])map[currentUid]={name:currentUser,score:0,tests:0,wins:0,streak:0};
+    map[currentUid].score=Math.max(map[currentUid].score, s.totalCorrect||0);
+    map[currentUid].tests=Math.max(map[currentUid].tests, s.tests||0);
+    map[currentUid].wins=Math.max(map[currentUid].wins, s.wins||0);
+    if(st&&st.streak)map[currentUid].streak=Math.max(map[currentUid].streak, st.streak);
   }
-  // 4) Массив болгож, level тооцож, оноогоор эрэмбэлэх
-  var lb=Object.keys(map).map(function(u){
-    var e=map[u];
+  // 3) Массив болгож, level тооцож, оноогоор эрэмбэлэх
+  var lb=Object.keys(map).map(function(key){
+    var e=map[key];
     e.lvl=calcLevel(e.score).lvl;
     return e;
   });
@@ -1793,7 +1877,7 @@ function renderProfile(){
   const sd=getStreak(currentUser);
   const users=getUsers();
   const {lvl,pct,lbl}=calcLevel(stats.totalCorrect||0);
-  const joinedDays=users[currentUser]?.joinedAt?Math.floor((Date.now()-users[currentUser].joinedAt)/86400000):0;
+  const joinedDays=users[currentUid]?.joinedAt?Math.floor((Date.now()-users[currentUid].joinedAt)/86400000):0;
 
   // Header
   const ph=document.getElementById('profile-header');
@@ -1865,15 +1949,19 @@ function changePassword(){
   const meta=getPwdMeta(currentUser);
   const daysSince=meta.lastChanged?Math.floor((Date.now()-meta.lastChanged)/86400000):999;
   if(daysSince<NAME_CHANGE_DAYS){err.textContent=`${NAME_CHANGE_DAYS-daysSince} өдрийн дараа солих боломжтой.`;return}
-  const users=getUsers();
-  if(users[currentUser].pass!==btoa(oldP)){err.textContent='Хуучин нууц үг буруу.';return}
   if(!newP||newP.length<4){err.textContent='Шинэ нууц үг 4+ тэмдэгт байх ёстой.';return}
-  users[currentUser].pass=btoa(newP);saveUsers(users);
-  savePwdMeta(currentUser,{lastChanged:Date.now()});
-  err.style.color='var(--green)';err.textContent='✓ Нууц үг амжилттай солигдлоо.';
-  document.getElementById('old-pass').value='';document.getElementById('new-pass').value='';
-  setTimeout(()=>{err.textContent='';err.style.color=''},3000);
-  renderProfile();
+  err.style.color='var(--t2)';err.textContent='⏳ Солиж байна...';
+  (async function(){
+    try{ const email=await studentEmail(currentUser); await fbSignIn(email,oldP); } // хуучин нууц үгийг шалгах
+    catch(e){ err.style.color='';err.textContent='Хуучин нууц үг буруу.';return; }
+    try{ await fbChangePassword(newP); }
+    catch(e){ err.style.color='';err.textContent='Солиход алдаа гарлаа. Дахин оролдоно уу.';return; }
+    savePwdMeta(currentUser,{lastChanged:Date.now()});
+    err.style.color='var(--green)';err.textContent='✓ Нууц үг амжилттай солигдлоо.';
+    document.getElementById('old-pass').value='';document.getElementById('new-pass').value='';
+    setTimeout(()=>{err.textContent='';err.style.color=''},3000);
+    renderProfile();
+  })();
 }
 
 // ===== ADMIN =====
@@ -1906,15 +1994,14 @@ function renderAdminSection(){
 function renderUserAdmin(c){
   const users=getUsers();
   const lb=_cache.lb||{};
-  const rows=Object.entries(users).filter(([u])=>u!==ADMIN_USER).map(([u,d])=>{
-    const st=getStats(u);
+  const rows=Object.entries(users).filter(([u,d])=>u!==ADMIN_USER && u!==AUTH_CONFIG.adminUid && (!d||d.role!=='admin')).map(([u,d])=>{
+    const nm=(d&&d.displayName)||u;
     const cl=lb[u]||{};
-    // Cloud болон local-оос хамгийн өндөр утгыг авна (оноо зөвхөн өсдөг тул аюулгүй)
-    const tests=Math.max(cl.tests||0, st.tests||0);
-    const score=Math.max(cl.score||0, st.totalCorrect||0);
-    const blocked=d.blocked?true:false;
+    const tests=cl.tests||0;
+    const score=cl.score||0;
+    const blocked=d&&d.blocked?true:false;
     return `<tr>
-      <td><strong>${sanitize(u)}</strong></td>
+      <td><strong>${sanitize(nm)}</strong></td>
       <td>${tests}</td>
       <td>${score}</td>
       <td><span class="status-dot ${blocked?'dot-blocked':'dot-active'}"></span>${blocked?'Блоклосон':'Идэвхтэй'}</td>
@@ -1943,15 +2030,14 @@ function toggleBlock(u,blocked){
 }
 
 function deleteUser(u){
-  mConfirm(u+'-г устгах уу?','Устгасан бол буцаах боломжгүй.','Устгах',function(){
-  const users=getUsers();delete users[u];saveUsers(users);
-  localStorage.removeItem('nt_streak_'+u);
-  localStorage.removeItem('nt_stats_'+u);
+  const users=getUsers();const nm=(users[u]&&users[u].displayName)||u;
+  mConfirm(nm+'-г устгах уу?','Профайл болон оноо устана. Нэвтрэх бүртгэл (Firebase Authentication) серверт үлдэнэ.','Устгах',function(){
+  const us=getUsers();delete us[u];saveUsers(us);
   if(_cache.lb)delete _cache.lb[u];
-  fbSet('leaderboard/'+u,null);
+  fbSetAuth('leaderboard/'+u,null);
   if(_cache.streak)delete _cache.streak[u];
-  fbSet('streaks/'+u,null);
-  showToast('Устгагдлаа');
+  fbSetAuth('streaks/'+u,null);
+  showToast('Профайл устгагдлаа');
   renderEditorContent();
   });
 }
@@ -2220,18 +2306,36 @@ function confirmSetPass(){
   const err=document.getElementById('setpass-err');
   if(!p1||p1.length<4){err.textContent='Нууц үг 4-өөс дээш тэмдэгттэй байх ёстой.';return}
   if(p1!==p2){err.textContent='Нууц үг таарахгүй байна.';return}
-  const codes=getCodes();
-  codes[_spCodeIdx].used=true;codes[_spCodeIdx].usedBy=_spUser;codes[_spCodeIdx].usedAt=Date.now();
-  saveCodes(codes);
-  const users=getUsers();
-  users[_spUser]={pass:btoa(p1),role:'user',blocked:false,joinedAt:Date.now()};
-  saveUsers(users);
-  document.getElementById('setpass-modal').style.display='none';
-  currentUser=_spUser;
-  localStorage.setItem('nt_session',_spUser);
-  _spUser='';_spCodeIdx=-1;
-  enterApp();
-  showToast('✓ Бүртгэл амжилттай нээгдлээ!');
+  if(!authConfigured()){
+    // Legacy fallback
+    const codes=getCodes();codes[_spCodeIdx].used=true;codes[_spCodeIdx].usedBy=_spUser;codes[_spCodeIdx].usedAt=Date.now();saveCodes(codes);
+    const users=getUsers();users[_spUser]={pass:btoa(p1),role:'user',blocked:false,joinedAt:Date.now()};saveUsers(users);
+    document.getElementById('setpass-modal').style.display='none';currentUser=_spUser;localStorage.setItem('nt_session',_spUser);
+    const nm=_spUser;_spUser='';_spCodeIdx=-1;enterApp();showToast('✓ Бүртгэл амжилттай нээгдлээ!');return;
+  }
+  err.style.color='var(--t2)';err.textContent='⏳ Бүртгэл үүсгэж байна...';
+  (async function(){
+    const name=_spUser, codeIdx=_spCodeIdx;
+    let email;
+    try{ email=await studentEmail(name); }catch(e){ err.style.color='';err.textContent='Алдаа гарлаа.';return; }
+    try{ await fbSignUpEmail(email,p1); }
+    catch(e){
+      err.style.color='';
+      err.textContent=/EMAIL_EXISTS/i.test(String(e&&e.message||''))?'Энэ нэр аль хэдийн бүртгэлтэй байна. Өөр нэр сонгоно уу.':'Бүртгэл үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.';
+      return;
+    }
+    currentUid=_fbAuth.uid;
+    try{ await fbSetAuth('users/'+currentUid,{displayName:name,blocked:false,joinedAt:Date.now()}); }catch(e){}
+    // Урилгын кодыг ашигласан гэж тэмдэглэх (одоо нэвтэрсэн тул бичих эрхтэй)
+    const codes=getCodes();
+    if(codes[codeIdx]){ codes[codeIdx].used=true;codes[codeIdx].usedBy=name;codes[codeIdx].usedAt=Date.now();saveCodes(codes); }
+    document.getElementById('setpass-modal').style.display='none';
+    err.style.color='';err.textContent='';
+    currentUser=name;localStorage.setItem('nt_session',name);
+    _spUser='';_spCodeIdx=-1;
+    enterApp();
+    showToast('✓ Бүртгэл амжилттай нээгдлээ!');
+  })();
 }
 
 document.addEventListener('keydown',function(e){
