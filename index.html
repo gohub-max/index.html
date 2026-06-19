@@ -1303,9 +1303,20 @@ function renderTopicGrid(){
 }
 
 // ===== TEST =====
+// Fisher-Yates — жинхэнэ жигд санамсаргүй холилт
+// (sort(()=>Math.random()-.5) нь налуу/буруу тул ашиглахгүй — 5 хариулт дээр бараг хөдөлгөдөггүй)
+function fyShuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    const t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+// Асуултын хариултуудыг холиод, зөв хариултын байрлалыг дагуулж шинэчилнэ
 function shuffleOpts(q){
   const n=(q.opts||[]).length;
-  const indices=Array.from({length:n},(_,i)=>i).sort(()=>Math.random()-.5);
+  const indices=fyShuffle(Array.from({length:n},(_,i)=>i));
   return{q:q.q,opts:indices.map(i=>q.opts[i]),ans:indices.indexOf(q.ans),exp:q.exp,topic:q.topic};
 }
 
@@ -1313,7 +1324,7 @@ function startTest(){
   timerSec=parseInt(document.getElementById('timer-sec').value)||0;
   let pool=[];
   selTopics.forEach(t=>(allQ[t]||[]).forEach(q=>pool.push({...q,topic:t})));
-  pool=pool.sort(()=>Math.random()-.5).map(shuffleOpts);
+  pool=fyShuffle(pool).map(shuffleOpts);
   const cv=document.getElementById('q-count').value;
   const cnt=cv==='all'?pool.length:Math.min(parseInt(cv),pool.length);
   testQueue=pool.slice(0,cnt);
@@ -1541,7 +1552,7 @@ function practiceWrong(){
   if(!items.length)return;
   timerSec=parseInt(document.getElementById('timer-sec')?.value)||0;
   let pool=items.map(it=>shuffleOpts({q:it.q,opts:it.opts,ans:it.ans,exp:it.exp,topic:it.topic}));
-  pool=pool.sort(()=>Math.random()-.5);
+  pool=fyShuffle(pool);
   testQueue=pool;cur=0;score=0;totalTime=0;userAns=[];
   showScreen('test');loadQ();
 }
@@ -1620,10 +1631,10 @@ ${wrongQs}
 }
 
 function restartTest(){
-  const orig=testQueue.map(q=>{
+  const orig=fyShuffle(testQueue.map(q=>{
     const origQ=allQ[q.topic]?.find(x=>x.q===q.q)||q;
     return shuffleOpts({...origQ,topic:q.topic});
-  }).sort(()=>Math.random()-.5);
+  }));
   testQueue=orig;cur=0;score=0;totalTime=0;userAns=[];
   showScreen('test');loadQ();
 }
