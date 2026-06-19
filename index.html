@@ -689,8 +689,7 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
 
 <script>
 // ===== CONFIG =====
-const ADMIN_USER='admin';
-const ADMIN_PASS='admin1234';
+const ADMIN_USER='admin'; // зөвхөн дэлгэцийн нэр/шошго — нууц үг кодонд БАЙХГҮЙ
 const NAME_CHANGE_DAYS=15;
 // Хариултын үсгүүд (5 хүртэл сонголтыг дэмжинэ — ЭЕШ-ийн асуултууд 5 сонголттой)
 const OPT_LETTERS=['А','Б','В','Г','Д','Е'];
@@ -795,6 +794,18 @@ const FIREBASE_CONFIG={
   databaseURL:'https://niigem-test-default-rtdb.firebaseio.com'
 };
 
+// ===== FIREBASE AUTHENTICATION (админыг СЕРВЕР талд баталгаажуулна) =====
+// АНХААР: доорх 2 утгыг Firebase Console-оос аваад бөглөнө үү:
+//  • apiKey   — Project Settings (⚙️) → General → "Web API Key"
+//  • adminUid — Authentication → Users → админ хэрэглэгчийн "User UID"
+// Эдгээр нь нууц биш (зүгээр л танигч). Жинхэнэ хамгаалалт нь Database Rules +
+// Auth token дээр тулгуурлана. Хоёуланг нь бөглөтөл апп хуучин (legacy) горимоор ажиллана.
+const AUTH_CONFIG={
+  apiKey:'PASTE_WEB_API_KEY_HERE',
+  adminUid:'PASTE_ADMIN_UID_HERE'
+};
+let _fbAuth=null; // {idToken, refreshToken, uid, email, expiresAt}
+
 // ===== CLOUD STORAGE (Firebase) =====
 // Энгийн fetch-based Firebase REST API — SDK шаардлагагүй
 async function fbGet(path){
@@ -824,6 +835,55 @@ async function fbUpdate(path,data){
     });
     _cloudOk=r.ok;
     return r.ok;
+  }catch(e){_cloudOk=false;return false;}
+}
+
+// ===== FIREBASE AUTH REST (SDK шаардлагагүй) =====
+// apiKey + adminUid хоёуланг бөглөсөн үед л "тохируулсан" гэж үзнэ.
+function authConfigured(){return !!(AUTH_CONFIG.apiKey&&AUTH_CONFIG.apiKey.indexOf('PASTE')!==0&&AUTH_CONFIG.adminUid&&AUTH_CONFIG.adminUid.indexOf('PASTE')!==0);}
+function restoreFbAuth(){try{var s=localStorage.getItem('nt_fbauth');_fbAuth=s?JSON.parse(s):null;}catch(e){_fbAuth=null;}}
+function fbSignOut(){_fbAuth=null;try{localStorage.removeItem('nt_fbauth');}catch(e){}}
+async function fbSignIn(email,password){
+  const r=await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key='+AUTH_CONFIG.apiKey,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:email,password:password,returnSecureToken:true})
+  });
+  const d=await r.json();
+  if(!r.ok||!d.idToken)throw new Error((d.error&&d.error.message)||'AUTH_FAILED');
+  _fbAuth={idToken:d.idToken,refreshToken:d.refreshToken,uid:d.localId,email:d.email,expiresAt:Date.now()+(parseInt(d.expiresIn||'3600',10)*1000)};
+  try{localStorage.setItem('nt_fbauth',JSON.stringify(_fbAuth));}catch(e){}
+  return _fbAuth;
+}
+async function fbRefreshToken(){
+  if(!_fbAuth||!_fbAuth.refreshToken)return false;
+  try{
+    const r=await fetch('https://securetoken.googleapis.com/v1/token?key='+AUTH_CONFIG.apiKey,{
+      method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(_fbAuth.refreshToken)
+    });
+    const d=await r.json();
+    if(!r.ok||!d.id_token)return false;
+    _fbAuth.idToken=d.id_token;_fbAuth.refreshToken=d.refresh_token||_fbAuth.refreshToken;
+    _fbAuth.expiresAt=Date.now()+(parseInt(d.expires_in||'3600',10)*1000);
+    try{localStorage.setItem('nt_fbauth',JSON.stringify(_fbAuth));}catch(e){}
+    return true;
+  }catch(e){return false;}
+}
+async function fbAuthToken(){
+  if(!_fbAuth)return null;
+  if(Date.now()>(_fbAuth.expiresAt||0)-60000){ // дуусахаас 1 мин өмнө сэргээнэ
+    const ok=await fbRefreshToken();
+    if(!ok){fbSignOut();return null;}
+  }
+  return _fbAuth.idToken;
+}
+// Админ эрхээр бичих — хамгаалагдсан зам руу (?auth=token) хавсаргана.
+async function fbSetAuth(path,data){
+  try{
+    const token=await fbAuthToken();
+    const url=FIREBASE_CONFIG.databaseURL+'/'+path+'.json'+(token?('?auth='+encodeURIComponent(token)):'');
+    const r=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    _cloudOk=r.ok;return r.ok;
   }catch(e){_cloudOk=false;return false;}
 }
 
@@ -876,7 +936,7 @@ async function loadAllData(){
   if(rq.ok){
     var cq=rq.data||{};
     if(Object.keys(cq).length===0 && Object.keys(lq).length>0){
-      _cache.q=lq; fbSet('questions',lq);
+      _cache.q=lq; fbSetAuth('questions',lq);
     }else{
       _cache.q=cq;
     }
@@ -962,8 +1022,8 @@ function saveQData(d){
   _cache.q=d;
   // Update allQ immediately so topic grid refreshes
   TOPICS.forEach(function(t){if(d[t.id])allQ[t.id]=d[t.id];});
-  fbSet('questions',d);
   localStorage.setItem('nt_q',JSON.stringify(d));
+  return fbSetAuth('questions',d); // rules: questions-д зөвхөн админ token-той бичнэ
 }
 
 // Stats — local per user (leaderboard uses cloud)
@@ -1062,39 +1122,59 @@ function init(){
         if(saved[t.id]&&saved[t.id].length>0) allQ[t.id]=saved[t.id];
       });
     }
-    // Ensure admin exists
+    // ===== Сесс сэргээх =====
+    restoreFbAuth();
     const users=getUsers();
-    if(!users[ADMIN_USER]){
-      users[ADMIN_USER]={pass:btoa(ADMIN_PASS),role:'admin',blocked:false};
-      saveUsers(users);
-    }
     const sess=localStorage.getItem('nt_session');
-    if(sess&&users[sess]&&!users[sess].blocked){
-      currentUser=sess;
-      enterApp();
-      return;
+    // Админ — Firebase Auth (тохируулсан үед)
+    if(authConfigured() && _fbAuth && _fbAuth.uid===AUTH_CONFIG.adminUid){
+      currentUser=ADMIN_USER; enterApp(); fbAuthToken(); return;
+    }
+    // Сурагч (эсвэл Firebase Auth тохируулаагүй үеийн legacy админ)
+    if(sess && users[sess] && !users[sess].blocked && !(authConfigured() && users[sess].role==='admin')){
+      currentUser=sess; enterApp(); return;
     }
     showScreen('auth');
   }).catch(function(){
     document.getElementById('auth-err').textContent='';
     updateCloudStatus();
+    restoreFbAuth();
     const users=getUsers();
-    if(!users[ADMIN_USER]){users[ADMIN_USER]={pass:btoa(ADMIN_PASS),role:'admin',blocked:false};saveUsers(users)}
     const sess=localStorage.getItem('nt_session');
-    if(sess&&users[sess]&&!users[sess].blocked){currentUser=sess;enterApp();return}
+    if(authConfigured() && _fbAuth && _fbAuth.uid===AUTH_CONFIG.adminUid){currentUser=ADMIN_USER;enterApp();fbAuthToken();return}
+    if(sess && users[sess] && !users[sess].blocked && !(authConfigured() && users[sess].role==='admin')){currentUser=sess;enterApp();return}
     showScreen('auth');
   });
 }
 
 function doAuth(){
-  const u=document.getElementById('auth-user').value.trim().toLowerCase();
+  const raw=document.getElementById('auth-user').value.trim();
+  const u=raw.toLowerCase();
   const p=document.getElementById('auth-pass').value;
   const err=document.getElementById('auth-err');
   if(!u||!p){err.textContent='Нэр, нууц үгээ оруулна уу.';return}
   if(!checkRateLimit(u)){err.textContent='Хэт олон оролдлого. 1 минут хүлээнэ үү.';return}
+
+  // ===== АДМИН — Firebase Authentication (и-мэйл хаягаар) =====
+  if(raw.indexOf('@')>-1){
+    if(!authConfigured()){err.textContent='Firebase Auth хараахан тохируулаагүй байна.';return}
+    err.style.color='var(--t2)';err.textContent='⏳ Нэвтэрч байна...';
+    fbSignIn(raw,p).then(function(){
+      if(!_fbAuth||_fbAuth.uid!==AUTH_CONFIG.adminUid){fbSignOut();err.style.color='';err.textContent='Энэ бүртгэл админ биш байна.';return}
+      err.style.color='';err.textContent='';
+      currentUser=ADMIN_USER;localStorage.setItem('nt_session',ADMIN_USER);enterApp();
+    }).catch(function(e){
+      err.style.color='';var m=String((e&&e.message)||'');
+      err.textContent=/PASSWORD|EMAIL|INVALID|CREDENTIAL|NOT_FOUND/i.test(m)?'И-мэйл эсвэл нууц үг буруу байна.':'Нэвтрэхэд алдаа гарлаа. Холболтоо шалгана уу.';
+    });
+    return;
+  }
+
+  // ===== СУРАГЧ — нэр + нууц үг =====
   const users=getUsers();
   if(users[u]){
     if(users[u].blocked){err.textContent='Энэ бүртгэл блоклогдсон.';return}
+    if(authConfigured() && users[u].role==='admin'){err.textContent='Админаар и-мэйл хаягаараа нэвтэрнэ үү.';return}
     if(users[u].pass!==btoa(p)){err.textContent='Нууц үг буруу.';return}
     err.textContent='';currentUser=u;localStorage.setItem('nt_session',u);enterApp();return;
   }
@@ -1112,7 +1192,7 @@ function doAuth(){
 
 function logout(){
   mConfirm('Гарахдаа итгэлтэй байна уу?','Таны дэвшил хадгалагдана.','Гарах',function(){
-    currentUser=null;localStorage.removeItem('nt_session');
+    currentUser=null;localStorage.removeItem('nt_session');fbSignOut();
     selTopics=[];
     document.getElementById('nav-menu').style.display='none';
     document.getElementById('user-chip').style.display='none';
@@ -1122,7 +1202,10 @@ function logout(){
   },'👋');
 }
 
-function isAdmin(){const u=getUsers();return u[currentUser]&&u[currentUser].role==='admin'}
+function isAdmin(){
+  if(authConfigured()) return !!(_fbAuth&&_fbAuth.uid&&_fbAuth.uid===AUTH_CONFIG.adminUid);
+  const u=getUsers();return !!(u[currentUser]&&u[currentUser].role==='admin'); // legacy: Firebase Auth тохируулаагүй үед
+}
 function isLoggedIn(){return !!currentUser}
 
 function enterApp(){
@@ -1751,6 +1834,8 @@ function renderProfile(){
   }
 
   // Password change cooldown
+  const pwdSection=document.getElementById('pwd-section');
+  if(pwdSection) pwdSection.style.display=isAdmin()?'none':''; // админ нууц үг Firebase дээр
   const meta=getPwdMeta(currentUser);
   const daysSince=meta.lastChanged?Math.floor((Date.now()-meta.lastChanged)/86400000):999;
   const canChange=daysSince>=NAME_CHANGE_DAYS;
@@ -1762,6 +1847,7 @@ function renderProfile(){
 }
 
 function changePassword(){
+  if(isAdmin()){const e0=document.getElementById('pwd-err');if(e0){e0.style.color='';e0.textContent='Админ нууц үгээ Firebase console дээрээс солино.';}return;}
   const oldP=document.getElementById('old-pass').value;
   const newP=document.getElementById('new-pass').value;
   const err=document.getElementById('pwd-err');
@@ -2005,9 +2091,12 @@ function saveQuestions(){
     qs.push({q:qText,opts,ans,exp});
   });
   allQ[editorTopic]=qs;
-  const saved=getQData();saved[editorTopic]=qs;saveQData(saved);
-  showToast('✓ Хадгалагдлаа!');renderTopicGrid();
-  renderEditorContent();
+  const saved=getQData();saved[editorTopic]=qs;
+  showToast('💾 Хадгалж байна...');
+  Promise.resolve(saveQData(saved)).then(function(ok){
+    showToast(ok?'✓ Cloud-д хадгалагдлаа!':'✓ Энэ төхөөрөмжид хадгаллаа. Cloud-д бичиж чадсангүй — дахин нэвтэрч үзнэ үү.');
+    renderTopicGrid();renderEditorContent();
+  });
 }
 
 // ===== NAV =====
