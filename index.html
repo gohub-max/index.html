@@ -151,6 +151,26 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
 .ai-tag{font-size:12px;padding:4px 10px;border-radius:99px;background:rgba(225,112,85,.1);color:var(--red);font-weight:500}
 .ai-section{margin-bottom:1rem}
 .ai-section-title{font-size:13px;font-weight:600;color:var(--purple);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.5px}
+/* Study plan / textbook refs */
+.sp-text{font-size:14px;color:var(--text);line-height:1.7}
+.sp-text b{color:var(--purple)}
+.sp-perfect{font-size:14px;color:var(--green);line-height:1.7;font-weight:500}
+.sp-ch{margin:.55rem 0 .35rem}
+.sp-ch-name{font-size:13.5px;font-weight:600;color:var(--text)}
+.sp-ch-pg{font-size:12px;font-weight:600;color:var(--t2);margin-left:4px}
+.sp-list{list-style:none;margin:.3rem 0 0;padding:0}
+.sp-list li{position:relative;padding:5px 0 5px 16px;font-size:13.5px;color:var(--text);line-height:1.55;border-bottom:1px solid var(--border)}
+.sp-list li:last-child{border-bottom:none}
+.sp-list li:before{content:'\203A';position:absolute;left:2px;top:4px;color:var(--purple);font-weight:700}
+.sp-pg{display:inline-block;font-size:12px;font-weight:700;color:var(--purple);background:rgba(108,92,231,.1);padding:1px 7px;border-radius:6px;margin-left:4px;white-space:nowrap}
+[data-theme="dark"] .sp-pg{background:rgba(162,155,254,.14)}
+.sp-sub-line{font-size:13px;color:var(--t2);margin-top:2px;line-height:1.5}
+.sp-sub-line b{color:var(--purple)}
+.exp-ref{margin-top:11px;padding-top:10px;border-top:1px dashed var(--border);font-size:13px;color:var(--purple);font-weight:500;line-height:1.6}
+.exp-ref.ok{color:var(--green)}
+.exp-ref b{font-weight:700}
+.wb-ref{margin-top:8px;font-size:12.5px;color:var(--purple);font-weight:500;line-height:1.5}
+.wb-ref b{font-weight:700}
 .review-list{margin-top:1.5rem}
 .review-item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)}
 .review-item:last-child{border-bottom:none}
@@ -581,8 +601,8 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
     </div>
     <div class="ai-advice-card" id="ai-advice-card">
       <div class="ai-advice-header">
-        <div class="ai-avatar">🤖</div>
-        <div><div class="ai-title">AI Зөвлөгч</div><div class="ai-sub">Таны үр дүнд үндэслэн зөвлөгөө</div></div>
+        <div class="ai-avatar">📖</div>
+        <div><div class="ai-title">Давтах төлөвлөгөө</div><div class="ai-sub">Сурах бичгийн хуудас холбосон давтлага</div></div>
       </div>
       <div class="ai-body" id="ai-body">
         <div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:4px">Дүн шинжилж байна...</span></div>
@@ -617,8 +637,8 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
     </div>
     <div class="ai-advice-card" id="dash-ai-card" style="display:none">
       <div class="ai-advice-header">
-        <div class="ai-avatar">🤖</div>
-        <div><div class="ai-title">AI Шинжилгээ</div><div class="ai-sub">Таны ерөнхий явцад үндэслэсэн зөвлөгөө</div></div>
+        <div class="ai-avatar">📖</div>
+        <div><div class="ai-title">Сурах бичгийн дүгнэлт</div><div class="ai-sub">Хамгийн их давтах сэдэв ба хуудас</div></div>
       </div>
       <div class="ai-body" id="dash-ai-body"></div>
     </div>
@@ -712,6 +732,94 @@ const TOPICS=[
   {id:'g11_soyl',   name:'Соёл',                       icon:'🎭',color:'#e17055', grade:11},
   {id:'g11_erh',    name:'Эрх зүй',                    icon:'⚖️',color:'#0984e3', grade:11},
 ];
+
+// ===== СУРАХ БИЧГИЙН ЛАВЛАХ САН (Textbook page knowledge base) =====
+// Сурагч алдаа гаргавал ЯГ аль бүлэг, аль хуудсыг унших ёстойг заана.
+const BOOK='Нийгэм судлал XI (ЕБС 11-р анги)';
+const CH={
+  ch1:{n:'Бүлэг I · Нийгэм, нийгмийн харилцаа', p:'х.5–39'},
+  ch2:{n:'Бүлэг II · Соёл',                      p:'х.40–70'},
+  ch3:{n:'Бүлэг III · Эрх зүй',                  p:'х.71–105'},
+  ch4:{n:'Бүлэг IV · Эдийн засаг',               p:'х.106–138'},
+  ch5:{n:'Бүлэг V · Улс төр',                    p:'х.139–166'},
+  ch6:{n:'Бүлэг VI · Олон улсын харилцаа',       p:'х.167–194'}
+};
+// Сэдэв бүрийг ямар бүлэгт хамаатуулах нөөц зураглал (түлхүүр үг олдохгүй үед)
+const TOPIC_CH={
+  niigem:['ch1'], soyl:['ch2'], ediin:['ch4'], ulstor:['ch3','ch5'],
+  olon:['ch6'], niigsudn:['ch1'], g11_niigem:['ch1'], g11_soyl:['ch2'], g11_erh:['ch3']
+};
+// Дэд сэдэв бүрийн ЯГ хуудас + асуултын тексттэй тааруулах түлхүүр үгс (бүгд жижиг үсгээр)
+const REFS=[
+  // ---- Бүлэг I: Нийгэм, нийгмийн харилцаа ----
+  {ch:'ch1', sub:'Давхраажилт ба тэгш бус байдал',        p:'х.6–9',   k:['тэгш бус','давхраажил','давхрааж','нийгмийн ялгаа','шатлал']},
+  {ch:'ch1', sub:'Давхраажлын онол (Маркс, Вебер)',        p:'х.9–11',  k:['маркс','вебер','райт','дюркгейм','парсонс','дэвис-мур','уорнер','дункан']},
+  {ch:'ch1', sub:'Давхраажлын хэв маяг (каст, анги)',      p:'х.12–13', k:['боолчлол','каст','язгуур','нийгмийн анги','ажилчин анги','хөрөнгөтөн']},
+  {ch:'ch1', sub:'Давхраажлын хэмжигдэхүүн',               p:'х.14–15', k:['баялаг','эрх мэдэл','нэр хүнд','статус']},
+  {ch:'ch1', sub:'Монголын давхраажил, түүхэн хувьсал',    p:'х.16–20', k:['түүхэн','язгууртан','социализм','1990']},
+  {ch:'ch1', sub:'Нийгмийн нийтлэг байдал (жендэр, угсаа)',p:'х.23–26', k:['жендэр','угсаатан','шашин','цөөнх','насны бүлэг']},
+  {ch:'ch1', sub:'Нийгмийн шилжих хөдөлгөөн',              p:'х.26–28', k:['шилжих хөдөлгөөн','босоо хөдөлгөөн','хэвтээ хөдөлгөөн','шилжилт']},
+  {ch:'ch1', sub:'Нийгмийн өөрчлөлт (Ленски, Тённис)',     p:'х.29–36', k:['ленски','тённис','нийгмийн өөрчлөлт','хувьсгал','шинэчлэл']},
+  // ---- Бүлэг II: Соёл ----
+  {ch:'ch2', sub:'Соёлын үйлдвэрлэл',                      p:'х.41–43', k:['соёлын үйлдвэр','соёлын бүтээгдэхүүн','соёлын аж']},
+  {ch:'ch2', sub:'Аялал жуулчлал',                         p:'х.43–46', k:['аялал','жуулчлал','жуулчин']},
+  {ch:'ch2', sub:'Даяаршил',                               p:'х.47–51', k:['даяаршил','даяарш','глобал']},
+  {ch:'ch2', sub:'Соёлын орон зай, кибер орчин',           p:'х.52–55', k:['соёлын орон зай','кибер','цахим орчин','виртуал']},
+  {ch:'ch2', sub:'Соёлын харилцан үйлчлэл',                p:'х.50–51', k:['харилцан үйлч','соёлын нэвтрэл','зээлдэх']},
+  {ch:'ch2', sub:'Соёлын адилсал (ассимиляци)',            p:'х.56–58', k:['адилсал','адилс','ассимил','уусал']},
+  {ch:'ch2', sub:'Соёлын дархлаа',                         p:'х.58–60', k:['соёлын дархлаа','дархлаа','соёлоо хамгаал']},
+  {ch:'ch2', sub:'Соёлын эрх чөлөө',                       p:'х.60–64', k:['соёлын эрх чөлөө','соёлын эрх','өөрийгөө илэрхийл']},
+  {ch:'ch2', sub:'Соёлын цочирдол',                        p:'х.64–67', k:['цочирдол','соёлын цоч','шок']},
+  // ---- Бүлэг III: Эрх зүй ----
+  {ch:'ch3', sub:'Хүний эрх, Үндсэн хууль, Цэц',           p:'х.71–76', k:['хүний эрх','үндсэн хууль','цэц','үндсэн хуул','эрх чөлөө','хууль']},
+  {ch:'ch3', sub:'Өмчлөх эрх, Иргэний хууль',              p:'х.76–81', k:['өмчлөх','өмч','иргэний хууль','нэхэмжлэл','нэхэмжл','гэрээ']},
+  {ch:'ch3', sub:'Гэмт хэрэг, гэм хор',                    p:'х.81–86', k:['гэмт хэрэг','гэм хор','эрүүгийн','шийтгэл','ял шийт']},
+  {ch:'ch3', sub:'Захиргааны маргаан',                     p:'х.86–92', k:['захиргаа','захиргааны','маргаан','шүүх']},
+  {ch:'ch3', sub:'Хүний эрх хамгаалах механизм (НҮБ)',     p:'х.92–103',k:['нүб','конвенц','хүний эрхийн механизм','хамгаалах байгууллага']},
+  // ---- Бүлэг IV: Эдийн засаг ----
+  {ch:'ch4', sub:'Сангийн бодлого, инфляци, татвар',       p:'х.107–110',k:['сангийн бодлого','инфляц','татвар','лаффер','төсөв']},
+  {ch:'ch4', sub:'Мөнгө, зээл (Кейнс, Хайек)',             p:'х.110–114',k:['мөнгө','зээл','зээлийн хүү','бонд','кейнс','хайек','төв банк']},
+  {ch:'ch4', sub:'Гадаад худалдаа',                        p:'х.115–120',k:['гадаад худалдаа','экспорт','импорт','протекц','тариф','худалдаа']},
+  {ch:'ch4', sub:'Хөрөнгө оруулалт, хувьцаа',              p:'х.121–128',k:['хөрөнгө оруулалт','хувьцаа','гшхо','портфель','ашигт ажиллагаа','хөрөнгийн зах']},
+  {ch:'ch4', sub:'Эдийн засгийн хөгжил, тогтвортой хөгжил',p:'х.129–134',k:['эдийн засгийн хөгжил','тогтвортой хөгжил','днб','дотоодын нийт']},
+  // ---- Бүлэг V: Улс төр ----
+  {ch:'ch5', sub:'Иргэний нийгэм',                         p:'х.140–143',k:['иргэний нийгэм','төрийн бус байгууллага']},
+  {ch:'ch5', sub:'Сонгууль (мажоритар, пропорциональ)',    p:'х.143–150',k:['сонгууль','сонгуул','мажоритар','пропорционал','тойрог','санал']},
+  {ch:'ch5', sub:'Хэвлэл мэдээлэл',                        p:'х.150–153',k:['хэвлэл','хэвлэл мэдээ','хэвлэлийн','олон нийтийн мэдээ']},
+  {ch:'ch5', sub:'Улс төрийн институт (Истон, Алмонд)',    p:'х.153–165',k:['истон','алмонд','улс төрийн нам','намын тогтолцоо','сонирхлын бүлэг','улс төрийн институт']},
+  // ---- Бүлэг VI: Олон улсын харилцаа ----
+  {ch:'ch6', sub:'Улс бус оролцогч (ОУБ, ОУТББ)',          p:'х.168–175',k:['улс бус','оролцогч','оуб','оутбб','олон улсын байгууллага','нэгдсэн үндэстн']},
+  {ch:'ch6', sub:'Монгол ба олон улсын харилцаа',          p:'х.176–178',k:['монголын гадаад бодлого','дипломат харилцаа','гадаад харилцаа']},
+  {ch:'ch6', sub:'Гуравдагч хөрш',                         p:'х.179–185',k:['гуравдагч хөрш','гуравдагч','хоёр хөрш']},
+  {ch:'ch6', sub:'Зөөлөн хүч (Жозеф Най)',                 p:'х.186–190',k:['зөөлөн хүч','хатуу хүч','ухаалаг хүч','жозеф най']},
+  // ---- Тусгай тэмдэглэл: Логик нь өөр ангид ----
+  {ch:'ch_logic', sub:'⚠️ Логик нь 11-р ангийн биш — 10-р ангийн сурах бичгээс үзнэ', p:'10-р ангийн «Нийгэм судлал X»', k:['логик','силлогизм','тезис','дүгнэлт хийх дүрэм','индукц','дедукц']}
+];
+
+// Асуултын текст + сэдвээр тохирох сурах бичгийн лавлахуудыг олох
+function findRefs(qText, topic){
+  const t=(qText||'').toLowerCase();
+  const out=[], seen={};
+  for(const r of REFS){
+    for(const kw of r.k){
+      if(t.indexOf(kw)>=0){
+        const key=r.sub+'|'+r.p;
+        if(!seen[key]){seen[key]=1;out.push(r);}
+        break;
+      }
+    }
+  }
+  if(!out.length){
+    const chs=TOPIC_CH[topic]||['ch1'];
+    for(const c of chs){ out.push({ch:c, sub:'', p:CH[c].p}); }
+  }
+  return out;
+}
+// Нэг мөр болгон (хамгийн ихдээ 2 лавлах) — тайлбар дотор харуулна
+function refLine(qText, topic){
+  return findRefs(qText,topic).slice(0,2)
+    .map(r=>`${r.sub||CH[r.ch].n} <b>${r.p}</b>`).join(' · ');
+}
 
 // ===== QUESTION DATA — 2025 ЭЕШ =====
 const DQ={
@@ -1557,6 +1665,18 @@ function startTest(){
   showScreen('test');loadQ();
 }
 
+// Асуултын тайлбар + сурах бичгийн хуудсыг харуулах (алдсан үед онцолж)
+function fillExplanation(q, wasCorrect){
+  const el=document.getElementById('explanation');
+  if(!el||!q)return;
+  let html='';
+  if(q.exp) html+=`<div>${sanitize(q.exp)}</div>`;
+  const rl=refLine(q.q, q.topic);
+  if(rl) html+=`<div class="exp-ref${wasCorrect?' ok':''}">📖 ${wasCorrect?'Гүнзгийрүүлж унш':'Алдсан тул заавал унш'}: ${rl}</div>`;
+  el.innerHTML=html;
+  el.style.display='block';
+}
+
 function loadQ(){
   const q=testQueue[cur];
   document.getElementById('q-num').textContent=(cur+1)+' / '+testQueue.length;
@@ -1564,8 +1684,7 @@ function loadQ(){
   const tp=TOPICS.find(t=>t.id===q.topic);
   document.getElementById('q-topic-badge').textContent=tp?tp.name:'';
   document.getElementById('q-text').textContent=q.q;
-  document.getElementById('explanation').style.display='none';
-  document.getElementById('explanation').textContent=q.exp||'';
+  const expEl=document.getElementById('explanation');expEl.style.display='none';expEl.innerHTML='';
   const opts=document.getElementById('options');opts.innerHTML='';
   q.opts.forEach((optText,i)=>{
     const d=document.createElement('div');d.className='opt';
@@ -1598,7 +1717,7 @@ function selAns(idx,correct,exp){
   if(idx===correct)score++;
   totalTime+=timerSec>0?timerSec-timeLeft:0;
   userAns.push({q:testQueue[cur].q,chosen:idx,ans:correct,opts:testQueue[cur].opts,ok:idx===correct,topic:testQueue[cur].topic,exp:testQueue[cur].exp});
-  if(exp)document.getElementById('explanation').style.display='block';
+  fillExplanation(testQueue[cur], idx===correct);
   document.getElementById('btn-next').disabled=false;
 }
 
@@ -1606,7 +1725,7 @@ function autoTO(correct,exp){
   document.querySelectorAll('.opt').forEach((o,i)=>{o.onclick=null;if(i===correct)o.classList.add('correct')});
   totalTime+=timerSec;
   userAns.push({q:testQueue[cur].q,chosen:-1,ans:correct,opts:testQueue[cur].opts,ok:false,topic:testQueue[cur].topic,exp:testQueue[cur].exp});
-  if(exp)document.getElementById('explanation').style.display='block';
+  fillExplanation(testQueue[cur], false);
   document.getElementById('btn-next').disabled=false;
 }
 
@@ -1635,7 +1754,7 @@ function showResult(){
   updateWrongNav();
   updateLevelUI();
   renderLeaderboard();
-  getAIAdvice(pct);
+  renderStudyPlan(pct);
   showScreen('result');
   if(wbAdded>0)setTimeout(()=>showToast('📕 '+wbAdded+' асуулт Алдааны санд нэмэгдлээ'),600);
 }
@@ -1765,6 +1884,7 @@ function renderWrongBank(){
         <div class="wb-q">${sanitize(it.q)}</div>
         <div class="wb-correct"><span class="wb-correct-tag">✓ Зөв хариулт</span> ${sanitize(correct)}</div>
         ${it.exp?`<div class="wb-exp">${sanitize(it.exp)}</div>`:''}
+        <div class="wb-ref">📖 Сурах бичгээс унш: ${refLine(it.q,it.topic)}</div>
       </div>`;
     }).join('');
   }
@@ -1806,53 +1926,54 @@ function clearWrongBank(){
   },'🗑');
 }
 
-async function getAIAdvice(pct){
-  const wrongTopics=[...new Set(userAns.filter(a=>!a.ok).map(a=>a.topic))];
-  const wrongQs=userAns.filter(a=>!a.ok).map(a=>`- "${a.q}" (Зөв: ${a.opts[a.ans]})`).join('\n');
-  const topicNames=wrongTopics.map(t=>TOPICS.find(x=>x.id===t)?.name||t).join(', ');
-  if(userAns.filter(a=>!a.ok).length===0){
-    document.getElementById('ai-body').innerHTML=`<p>🎉 Бүх асуултыг зөв хариуллаа! Гайхалтай. Өндөр түвшний тестийг оролдоорой.</p>`;
+// ===== ДАВТАХ ТӨЛӨВЛӨГӨӨ — сурах бичигт суурилсан (интернэт шаардахгүй) =====
+function renderStudyPlan(pct){
+  const body=document.getElementById('ai-body');
+  if(!body)return;
+  const wrong=userAns.filter(a=>!a.ok);
+  if(wrong.length===0){
+    body.innerHTML=`<div class="sp-perfect">🎉 Бүх асуултад зөв хариуллаа! Маш сайн байна.<br>Дараагийн алхам: илүү өндөр түвшний тест өгөх эсвэл «Алдааны сан»-аас хуучин алдсан асуултуудаа давтаарай.</div>`;
     return;
   }
-  const prompt=`Та 10-р ангийн нийгэм, соёлын хичээлийн AI зөвлөгч юм. Монгол хэлээр, найрсаг өнгөөр хариулна уу.
-
-Сурагч тестэд ${pct}% оноо авлаа.
-Буруу хариулсан сэдвүүд: ${topicNames||'байхгүй'}
-Буруу хариулсан асуултууд:
-${wrongQs}
-
-Дараах форматаар зөвлөгөө өгнө үү (markdown ашиглахгүй, цэвэр текст):
-
-[АЛДААНЫ ШИНЖИЛГЭЭ]
-Юуг сайн ойлгоогүй байгааг товч тайлбарла.
-
-[ДАВТАХ СЭДВҮҮД]
-Ямар сэдвийг илүү сайн судлах хэрэгтэйг жагсаа.
-
-[ЗӨВЛӨГӨӨ]
-3-4 практик зөвлөгөө өг.`;
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+  const wrongTopics=[...new Set(wrong.map(a=>a.topic))];
+  let html='';
+  // 1) Алдсан сэдвийн шошго
+  html+=`<div class="ai-topic-tags">${wrongTopics.map(t=>{const tp=TOPICS.find(x=>x.id===t);return `<span class="ai-tag">${tp?tp.icon:''} ${tp?tp.name:t}</span>`}).join('')}</div>`;
+  // 2) Алдааны дүгнэлт
+  const tn=wrongTopics.map(t=>TOPICS.find(x=>x.id===t)?.name||t).join(', ');
+  html+=`<div class="ai-section"><div class="ai-section-title">Алдааны дүгнэлт</div><div class="sp-text">${wrong.length} асуултад алдлаа (оноо: <b>${pct}%</b>). Гол анхаарах сэдэв: <b>${sanitize(tn)}</b>. Доорх хуудсуудыг уншвал эдгээр цоорхойг нөхнө.</div></div>`;
+  // 3) Унших хуудас — бүлгээр бүлэглэнэ
+  const byCh={};
+  wrong.forEach(a=>{
+    findRefs(a.q,a.topic).forEach(r=>{
+      const ch=r.ch||'';
+      if(!byCh[ch])byCh[ch]={};
+      const label=r.sub||(CH[ch]?CH[ch].n:'');
+      byCh[ch][label+'|'+r.p]={label,p:r.p};
     });
-    const data=await resp.json();
-    const text=data.content?.[0]?.text||'';
-    if(!text){document.getElementById('ai-body').innerHTML='<p style="color:var(--t2)">Зөвлөгөө авах боломжгүй.</p>';return}
-    const sections={};
-    const parts=text.split(/\[(.*?)\]/g).filter(s=>s.trim());
-    for(let i=0;i<parts.length;i+=2){if(parts[i+1])sections[parts[i].trim()]=parts[i+1].trim()}
-    let html='';
-    if(wrongTopics.length>0){
-      html+=`<div class="ai-topic-tags">${wrongTopics.map(t=>`<span class="ai-tag">${TOPICS.find(x=>x.id===t)?.icon} ${TOPICS.find(x=>x.id===t)?.name||t}</span>`).join('')}</div>`;
-    }
-    if(Object.keys(sections).length>0){
-      Object.entries(sections).forEach(([title,content])=>{
-        html+=`<div class="ai-section"><div class="ai-section-title">${title}</div><div style="font-size:14px;color:var(--text);line-height:1.7">${content.replace(/\n/g,'<br>')}</div></div>`;
-      });
-    }else{html=`<div style="font-size:14px;color:var(--text);line-height:1.7">${text.replace(/\n/g,'<br>')}</div>`}
-    document.getElementById('ai-body').innerHTML=html;
-  }catch(e){document.getElementById('ai-body').innerHTML='<p style="color:var(--t2)">Зөвлөгөө авах боломжгүй.</p>'}
+  });
+  const order=['ch1','ch2','ch3','ch4','ch5','ch6'];
+  const chKeys=Object.keys(byCh).sort((a,b)=>{
+    const ia=order.indexOf(a),ib=order.indexOf(b);
+    return (ia<0?99:ia)-(ib<0?99:ib);
+  });
+  let plan='';
+  chKeys.forEach(ch=>{
+    const meta=CH[ch];
+    plan+=`<div class="sp-ch"><span class="sp-ch-name">${meta?meta.n:'Бусад тэмдэглэл'}</span>${meta?`<span class="sp-ch-pg">${meta.p}</span>`:''}</div><ul class="sp-list">`;
+    Object.values(byCh[ch]).forEach(it=>{plan+=`<li>${it.label}<span class="sp-pg">${it.p}</span></li>`});
+    plan+=`</ul>`;
+  });
+  html+=`<div class="ai-section"><div class="ai-section-title">📖 Сурах бичгээс унших хуудас</div>${plan}<div class="sp-sub-line">Сурах бичиг: <b>${BOOK}</b></div></div>`;
+  // 4) Зөвлөгөө
+  const tips=[
+    'Алдсан асуулт бүрийн ард заасан хуудсыг нээж, гол нэр томьёо, тодорхойлолтыг тэмдэглэж аваарай.',
+    'Уншсаны дараа «Алдааны сан» хэсгээс ижил сэдвийн асуултуудыг дахин бөглөж өөрийгөө шалгаарай.',
+    'Онол дэвшүүлэгчдийн нэрсийг (Маркс, Вебер, Кейнс, Истон гэх мэт) тусад нь карт болгон цээжлээрэй.',
+    'Өдөрт нэг бүлгийг зорилго болгож, 25–30 минут уншаад богино тест өгөх дадал хэвшүүлээрэй.'
+  ];
+  html+=`<div class="ai-section"><div class="ai-section-title">Зөвлөгөө</div><ul class="sp-list">${tips.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+  body.innerHTML=html;
 }
 
 function restartTest(){
@@ -1977,34 +2098,30 @@ function renderDashboard(){
       <div class="topic-bar-pct">${wrong} алдаа</div>
     </div>`;
   });
-  // AI dashboard analysis
-  if((stats.tests||0)>=2){
+  // Сурах бичгийн дүгнэлт (интернэт шаардахгүй)
+  if((stats.tests||0)>=1){
     const dashCard=document.getElementById('dash-ai-card');
-    if(dashCard){dashCard.style.display='';getDashboardAI(stats,pct)}
+    if(dashCard){dashCard.style.display='';renderDashboardStudy(stats,pct)}
   }
 }
 
-async function getDashboardAI(stats,avgPct){
+function renderDashboardStudy(stats,avgPct){
   const el=document.getElementById('dash-ai-body');if(!el)return;
-  el.innerHTML=`<div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span style="margin-left:4px">Шинжилж байна...</span></div>`;
-  const topicWrong=Object.entries(stats.topicWrong||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([id,cnt])=>`${TOPICS.find(t=>t.id===id)?.name||id}: ${cnt} алдаа`).join(', ');
-  const prompt=`Монгол хэлээр, ${currentUser} сурагчийн нийгэм, соёлын хичээлийн ерөнхий явцад дүн шинжилгээ хий.
-
-Нийт тест: ${stats.tests}
-Дундаж оноо: ${avgPct}%
-Хамгийн их алдаатай сэдэв: ${topicWrong||'байхгүй'}
-Level: ${calcLevel(stats.totalCorrect||0).lvl}
-
-Товч (2-3 өгүүлбэр) зөвлөгөө өг.`;
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:prompt}]})
-    });
-    const data=await resp.json();
-    const text=data.content?.[0]?.text||'';
-    el.innerHTML=`<div style="font-size:14px;line-height:1.7">${text.replace(/\n/g,'<br>')}</div>`;
-  }catch(e){el.innerHTML='<p style="color:var(--t2)">Шинжилгээ авах боломжгүй.</p>'}
+  const entries=Object.entries(stats.topicWrong||{}).sort((a,b)=>b[1]-a[1]).filter(([id,cnt])=>cnt>0).slice(0,3);
+  if(!entries.length){
+    el.innerHTML=`<div class="sp-perfect">👏 Одоогоор тогтмол алддаг сэдэв алга. Хэмжээгээ нэмэгдүүлж, шинэ бүлгүүдийн тест өгөөрэй.</div>`;
+    return;
+  }
+  let html=`<div class="sp-text">Нийт <b>${stats.tests||0}</b> тест, дундаж <b>${avgPct}%</b>. Хамгийн их алддаг <b>${entries.length}</b> сэдвээ эхэлж давтаарай:</div>`;
+  entries.forEach(([id,cnt])=>{
+    const tp=TOPICS.find(t=>t.id===id);
+    const chs=TOPIC_CH[id]||['ch1'];
+    html+=`<div class="sp-ch"><span class="sp-ch-name">${tp?tp.icon:''} ${tp?tp.name:id}</span><span class="sp-ch-pg">${cnt} алдаа</span></div><ul class="sp-list">`;
+    chs.forEach(c=>{const m=CH[c];if(m)html+=`<li>${m.n}<span class="sp-pg">${m.p}</span></li>`});
+    html+=`</ul>`;
+  });
+  html+=`<div class="sp-sub-line">Сурах бичиг: <b>${BOOK}</b></div>`;
+  el.innerHTML=html;
 }
 
 // ===== PROFILE =====
