@@ -207,6 +207,31 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
 .tcol-silver{background:rgba(192,192,192,.2);color:#888}
 .tcol-gold{background:rgba(255,215,0,.2);color:#b8860b}
 [data-theme="dark"] .tcol-gold{color:var(--amber)}
+.lb-score-lbl{font-size:10px;color:var(--t2);margin-top:1px}
+.lb-item.top5{box-shadow:0 4px 18px rgba(108,92,231,.14)}
+
+/* TIER BADGES — Чулуу → Бадмаараг(Ruby). Дээш гарах тусам гялалзана */
+.tier-badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:99px;margin-left:6px;white-space:nowrap;vertical-align:middle;border:1px solid transparent}
+/* Цэргийн цолын өнгөний бүлгүүд */
+.mil-enl{background:rgba(75,120,70,.18);color:#4e7a3f;border-color:rgba(75,120,70,.45)}
+[data-theme="dark"] .mil-enl{color:#8fc77a}
+.mil-nco{background:rgba(180,120,55,.16);color:#b4762f;border-color:rgba(180,120,55,.45)}
+[data-theme="dark"] .mil-nco{color:#e0a45c}
+.mil-off{background:linear-gradient(135deg,rgba(70,110,160,.2),rgba(90,130,180,.2));color:#3f6fa0;border-color:rgba(80,120,170,.55)}
+[data-theme="dark"] .mil-off{color:#9fc2e6}
+.mil-gen{background:linear-gradient(135deg,rgba(255,200,40,.28),rgba(212,160,23,.28));color:#a9810b;border-color:rgba(230,180,30,.6);box-shadow:0 0 8px rgba(230,180,30,.3)}
+[data-theme="dark"] .mil-gen{color:#ffd84d}
+.mil-sup{background:linear-gradient(135deg,#ffcf40,#d4a017);color:#5a3d00;border-color:#ffe07a;box-shadow:0 0 12px rgba(255,200,40,.55);animation:genGlow 2.2s ease-in-out infinite}
+@keyframes genGlow{0%,100%{box-shadow:0 0 10px rgba(255,200,40,.5)}50%{box-shadow:0 0 20px rgba(255,200,40,.85)}}
+
+/* SEASON BANNER + COUNTDOWN */
+.season-banner{background:linear-gradient(135deg,rgba(108,92,231,.1),rgba(162,155,254,.06));border:1.5px solid var(--border);border-radius:14px;padding:.9rem 1.1rem;margin-bottom:1.25rem}
+.season-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.season-num{font-size:14px;font-weight:700;color:var(--purple);letter-spacing:.2px}
+.season-left{font-size:13px;font-weight:600;color:var(--text)}
+.season-bar{height:7px;background:var(--bg2);border-radius:99px;overflow:hidden;margin:.6rem 0 .4rem}
+.season-fill{height:100%;background:linear-gradient(90deg,var(--pl),var(--purple));border-radius:99px;transition:width .6s ease}
+.season-next{font-size:11.5px;color:var(--t2)}
 
 /* PROFILE */
 .profile-wrap{max-width:520px;margin:0 auto}
@@ -619,8 +644,9 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
   <div class="screen" id="leaderboard">
     <div class="lb-header">
       <h2>🏆 Шилдэг 10</h2>
-      <p>Тестэд хамгийн сайн үзүүлэлт гаргасан сурагчид</p>
+      <p>Энэ улирлын оноогоор тэмцэнэ — Top 5 нь шагнал авна</p>
     </div>
+    <div class="season-banner" id="season-banner"></div>
     <div class="lb-list" id="lb-list"></div>
   </div>
 
@@ -1326,7 +1352,20 @@ function saveStats(u,d){
   _cache.stats[u]=d; // local stats — нэрээр (төхөөрөмж дотор)
   localStorage.setItem('nt_stats_'+u,JSON.stringify(d));
   // Leaderboard cloud — uid-ээр түлхүүрлэж, өөрийн token-той бичнэ (зөвхөн өөрийн оноог)
-  var lbEntry={score:d.totalCorrect||0,tests:d.tests||0,wins:d.wins||0,streak:(getStreak(u).streak||0),name:u};
+  var totalC=d.totalCorrect||0;
+  var si=seasonInfo();
+  var prev=(_cache.lb&&currentUid&&_cache.lb[currentUid])||{};
+  var seasonNum=prev.seasonNum, seasonBase=prev.seasonBase;
+  // Шинэ улирал энэ хэрэглэгчид анх тохиолдоход: суурь = өмнөх улирлыг дуусгасан оноо
+  // (хуучин хэрэглэгчдийн нийт оноо нь суурь болж, улирал шинээр 0-ээс эхэлнэ)
+  if(seasonNum!==si.num){
+    seasonBase=(prev.score!=null?prev.score:0);
+    seasonNum=si.num;
+  }
+  if(seasonBase==null)seasonBase=0;
+  var lbEntry={score:totalC,tests:d.tests||0,wins:d.wins||0,streak:(getStreak(u).streak||0),name:u,
+               seasonNum:seasonNum, seasonBase:seasonBase,
+               bonusTcol:(prev.bonusTcol||0), lastBonusSeason:(prev.lastBonusSeason||0)};
   if(!_cache.lb)_cache.lb={};
   if(currentUid){ _cache.lb[currentUid]=lbEntry; fbUpdateAuth('leaderboard/'+currentUid,lbEntry); }
 }
@@ -1575,16 +1614,88 @@ function recordStreak(){
 
 // ===== LEVEL =====
 // totalCorrect-оос хамаарч түвшин тооцоолно. {lvl, pct, lbl} буцаана.
+// Дээш гарах тусам УЛАМ хүндэрнэ (хэрэгцээ геометрээр өснө).
 function calcLevel(totalCorrect){
-  var labels=['Шинэхэн','Суралцагч','Идэвхтэн','Чадварлаг','Мэргэжилтэн','Эксперт','Мастер','Гросмейстер'];
+  var labels=['Шинэхэн','Суралцагч','Идэвхтэн','Чадварлаг','Мэргэжилтэн','Эксперт','Мастер','Гросмейстер','Домог','Үлэмж'];
   var n=totalCorrect||0;
-  var lvl=1, need=5, acc=0;
-  while(n>=acc+need){acc+=need;lvl++;need+=5;}
+  var lvl=1, need=8, acc=0;
+  while(n>=acc+need){acc+=need;lvl++;need=Math.round(need*1.35);}
   var pct=Math.round(((n-acc)/need)*100);
   if(pct>100)pct=100;
   if(pct<0)pct=0;
   var lbl=labels[Math.min(lvl-1,labels.length-1)];
-  return {lvl:lvl,pct:pct,lbl:lbl};
+  return {lvl:lvl,pct:pct,lbl:lbl,need:need,into:(n-acc)};
+}
+
+// ===== TCOL (оноо) — зөв хариултаас хуримтлагдана, өндөрсөх тусам ХҮНДЭРНЭ =====
+// Цэвэр функц: totalCorrect-оос тооцоолно (серверт бичих эрсдэлгүй). Concave (буурах өгөөж).
+function calcTcol(totalCorrect){
+  var n=Math.max(0, totalCorrect||0);
+  // Зөв хариулт бүрийн "ханш" — олон зөв хариулсан тусам нэг бүрийн үнэ цэн буурна
+  var tiers=[[50,10],[50,8],[100,6],[150,4],[250,3],[Infinity,2]];
+  var t=0, left=n;
+  for(var i=0;i<tiers.length && left>0;i++){
+    var cnt=Math.min(left, tiers[i][0]);
+    t+=cnt*tiers[i][1];
+    left-=cnt;
+  }
+  return t;
+}
+
+// ===== ЗЭРЭГ (tier) — Монгол Улсын цэргийн цолоор. Байлдагчаас Генерал хүртэл 20 шат.
+// Дээш гарах тусам зай нь уртасч хүндэрнэ. Цолын нэр нь албан ёсны/нийтийн нэр томьёо.
+var TCOL_TIERS=[
+  // Байлдагч/түрүүч (энгийн бүрэлдэхүүн) — ногоон
+  {min:0,     name:'Байлдагч',          icon:'🌟', cls:'mil-enl'},
+  {min:80,    name:'Ахлах байлдагч',    icon:'🌟', cls:'mil-enl'},
+  {min:180,   name:'Дэд түрүүч',        icon:'🌟', cls:'mil-enl'},
+  {min:300,   name:'Түрүүч',            icon:'🌟', cls:'mil-enl'},
+  {min:450,   name:'Ахлах түрүүч',      icon:'🌟', cls:'mil-enl'},
+  // Ахлагч (ахлах бүрэлдэхүүн) — хүрэл
+  {min:650,   name:'Дэд ахлагч',        icon:'🌟', cls:'mil-nco'},
+  {min:900,   name:'Ахлагч',            icon:'🌟', cls:'mil-nco'},
+  {min:1200,  name:'Ахлах ахлагч',      icon:'🌟', cls:'mil-nco'},
+  {min:1550,  name:'Сургагч ахлагч',    icon:'🌟', cls:'mil-nco'},
+  {min:1950,  name:'Тэргүүн ахлагч',    icon:'🌟', cls:'mil-nco'},
+  // Офицер (Дэслэгч → Хурандаа) — ган цэнхэр
+  {min:2400,  name:'Дэслэгч',           icon:'🌟', cls:'mil-off'},
+  {min:2900,  name:'Ахлах дэслэгч',     icon:'🌟', cls:'mil-off'},
+  {min:3500,  name:'Ахмад',             icon:'🌟', cls:'mil-off'},
+  {min:4200,  name:'Хошууч',            icon:'🌟', cls:'mil-off'},
+  {min:5000,  name:'Дэд хурандаа',      icon:'🌟', cls:'mil-off'},
+  {min:5900,  name:'Хурандаа',          icon:'🌟', cls:'mil-off'},
+  // Генералууд — алтан
+  {min:6900,  name:'Бригадын генерал',  icon:'🌟', cls:'mil-gen'},
+  {min:8000,  name:'Хошууч генерал',    icon:'🌟', cls:'mil-gen'},
+  {min:9200,  name:'Дэслэгч генерал',   icon:'🌟', cls:'mil-gen'},
+  {min:10500, name:'Генерал',           icon:'🌟', cls:'mil-sup'}
+];
+function calcTier(tcol){
+  var t=tcol||0, idx=0;
+  for(var i=0;i<TCOL_TIERS.length;i++){ if(t>=TCOL_TIERS[i].min) idx=i; }
+  var cur=TCOL_TIERS[idx], next=TCOL_TIERS[idx+1]||null;
+  var into=t-cur.min, span=next?(next.min-cur.min):1;
+  return {idx:idx, name:cur.name, icon:cur.icon, cls:cur.cls,
+          next:next, toNext:next?Math.max(0,next.min-t):0,
+          pct:next?Math.min(100,Math.round(into/span*100)):100};
+}
+
+// ===== SEASON — 14 хоног. Цаг хугацаанаас тооцоолно (advance-д сервер бичих шаардлагагүй) =====
+var SEASON_LEN=14*24*60*60*1000;              // 14 хоног
+var SEASON_EPOCH=Date.UTC(2026,5,22,0,0,0);   // Анкер: 2026-06-22 Даваа = Season 1 эхэлнэ (бүх season Даваагаас)
+function seasonInfo(){
+  var now=Date.now();
+  var num=Math.floor((now-SEASON_EPOCH)/SEASON_LEN)+1;
+  if(num<1)num=1;
+  var startedAt=SEASON_EPOCH+(num-1)*SEASON_LEN;
+  var endsAt=SEASON_EPOCH+num*SEASON_LEN;
+  return {num:num, startedAt:startedAt, endsAt:endsAt, remaining:Math.max(0,endsAt-now)};
+}
+// Тухайн leaderboard бичлэгийн энэ улирлын оноог гаргана (баазад бичихгүй, зөвхөн тооцоо)
+function entrySeasonPts(e, si){
+  if(!e) return 0;
+  if(e.seasonNum!==si.num) return 0;           // энэ улиралд тоглоогүй → 0
+  return Math.max(0,(e.score||0)-(e.seasonBase||0));
 }
 
 function updateLevelUI(){
@@ -1671,8 +1782,13 @@ function fillExplanation(q, wasCorrect){
   if(!el||!q)return;
   let html='';
   if(q.exp) html+=`<div>${sanitize(q.exp)}</div>`;
-  const rl=refLine(q.q, q.topic);
-  if(rl) html+=`<div class="exp-ref${wasCorrect?' ok':''}">📖 ${wasCorrect?'Гүнзгийрүүлж унш':'Алдсан тул заавал унш'}: ${rl}</div>`;
+  // Тодорхой лавлах: асуултад зориуд "ref" зааж өгсөн бол түүнийг (нарийвчлал өндөр),
+  // үгүй бол түлхүүр үгээр сурах бичгийн дэд сэдвийг олно.
+  const rl = q.ref ? sanitize(q.ref) : refLine(q.q, q.topic);
+  if(rl){
+    const lead = wasCorrect ? 'Гүнзгийрүүлж судлах' : 'Энэ хэсгийг сурах бичгээсээ эргэж тогтоо';
+    html+=`<div class="exp-ref${wasCorrect?' ok':''}">📖 ${lead}: ${rl}</div>`;
+  }
   el.innerHTML=html;
   el.style.display='block';
 }
@@ -1986,64 +2102,141 @@ function restartTest(){
 }
 
 // ===== LEADERBOARD =====
-// Cloud leaderboard (_cache.lb) — бүх төхөөрөмжийн оноо.
-// Энэ төхөөрөмж дээрх local stats-ийг max-аар нэгтгэнэ (оноо зөвхөн өсдөг тул аюулгүй).
+// Cloud leaderboard (_cache.lb).
+// Эрэмбэ: ЭНЭ УЛИРЛЫН оноо (season points). Тэнцвэл нийт онооор.
+// Зөвхөн ТЕСТ ӨГСӨН хүмүүс орно. Идэвхгүй (season алгассан) хүний оноо буурна.
+var DECAY_PER_SEASON=150; // алгассан season тутамд хасагдах оноо
+function effTcol(e, si){
+  var base=calcTcol(e.score||0)+(e.bonusTcol||0);
+  var inactive=Math.max(0, si.num-((e.seasonNum!=null)?e.seasonNum:si.num));
+  return Math.max(0, base - inactive*DECAY_PER_SEASON);
+}
 function getLeaderboard(){
+  var si=seasonInfo();
   var map={};
-  // 1) Cloud оноонууд — uid-ээр түлхүүрлэгдсэн, нэр нь "name" талбарт
   var cloud=_cache.lb||{};
   Object.keys(cloud).forEach(function(key){
     if(key===AUTH_CONFIG.adminUid)return; // админыг харуулахгүй
     var c=cloud[key]||{};
     var nm=c.name||key;
     if(nm===ADMIN_USER)return;
-    map[key]={name:nm,score:c.score||0,tests:c.tests||0,wins:c.wins||0,streak:c.streak||0};
+    if(!(c.tests>0))return; // зөвхөн тест өгсөн хүн
+    map[key]={name:nm,score:c.score||0,tests:c.tests||0,wins:c.wins||0,streak:c.streak||0,
+              seasonNum:c.seasonNum, seasonBase:c.seasonBase, bonusTcol:c.bonusTcol||0};
   });
-  // 2) Одоогийн хэрэглэгчийн хамгийн шинэ local оноо/streak-ийг давхарлана (cloud-аас түрүүлж харагдуулна)
+  // Одоогийн хэрэглэгчийн шинэ local оноог давхарлана (зөвхөн тест өгсөн бол)
   if(currentUid){
     var s=getStats(currentUser), st=getStreak(currentUser);
-    if(!map[currentUid])map[currentUid]={name:currentUser,score:0,tests:0,wins:0,streak:0};
-    map[currentUid].score=Math.max(map[currentUid].score, s.totalCorrect||0);
-    map[currentUid].tests=Math.max(map[currentUid].tests, s.tests||0);
-    map[currentUid].wins=Math.max(map[currentUid].wins, s.wins||0);
-    if(st&&st.streak)map[currentUid].streak=Math.max(map[currentUid].streak, st.streak);
+    if((s.tests||0)>0){
+      if(!map[currentUid])map[currentUid]={name:currentUser,score:0,tests:0,wins:0,streak:0,bonusTcol:0};
+      var localC=s.totalCorrect||0;
+      if(localC>map[currentUid].score){
+        if(map[currentUid].seasonNum!==si.num){
+          map[currentUid].seasonBase=(map[currentUid].score!=null?map[currentUid].score:0);
+          map[currentUid].seasonNum=si.num;
+        }
+        map[currentUid].score=localC;
+      }
+      map[currentUid].tests=Math.max(map[currentUid].tests, s.tests||0);
+      map[currentUid].wins=Math.max(map[currentUid].wins, s.wins||0);
+      if(st&&st.streak)map[currentUid].streak=Math.max(map[currentUid].streak, st.streak);
+    }
   }
-  // 3) Массив болгож, level тооцож, оноогоор эрэмбэлэх
   var lb=Object.keys(map).map(function(key){
     var e=map[key];
+    e.seasonPts=entrySeasonPts(e, si);
+    e.tcol=effTcol(e, si);
+    e.tier=calcTier(e.tcol);
     e.lvl=calcLevel(e.score).lvl;
     return e;
   });
-  return lb.sort(function(a,b){return b.score-a.score;}).slice(0,10);
+  return lb.sort(function(a,b){return (b.seasonPts-a.seasonPts)||(b.tcol-a.tcol);}).slice(0,10);
 }
 
-function getTcolBadge(rank){
-  if(rank===0)return{cls:'tcol-gold',txt:'🥇 Алт'};
-  if(rank===1)return{cls:'tcol-silver',txt:'🥈 Мөнгө'};
-  if(rank===2)return{cls:'tcol-bronze',txt:'🥉 Хүрэл'};
-  if(rank<=4)return{cls:'tcol-bronze',txt:'🎖 Top 5'};
-  return{cls:'',txt:''};
+// Үлдсэн хугацааг "Xө Yц Zм" болгож харуулна
+function fmtRemaining(ms){
+  var s=Math.floor(ms/1000);
+  var d=Math.floor(s/86400); s-=d*86400;
+  var h=Math.floor(s/3600); s-=h*3600;
+  var m=Math.floor(s/60);
+  if(d>0) return d+'ө '+h+'ц '+m+'м';
+  if(h>0) return h+'ц '+m+'м';
+  return m+'м';
+}
+
+// Season banner + countdown
+var _seasonTick=null;
+function renderSeasonBanner(){
+  var el=document.getElementById('season-banner'); if(!el) return;
+  var si=seasonInfo();
+  var pct=Math.round((1-si.remaining/SEASON_LEN)*100); if(pct<0)pct=0; if(pct>100)pct=100;
+  var nx=new Date(si.endsAt), p=function(n){return String(n).padStart(2,'0');};
+  var nextStr=nx.getFullYear()+'.'+p(nx.getMonth()+1)+'.'+p(nx.getDate());
+  el.innerHTML=
+    '<div class="season-top"><span class="season-num">⚔️ Season '+si.num+'</span>'+
+    '<span class="season-left">⏳ '+fmtRemaining(si.remaining)+' үлдлээ</span></div>'+
+    '<div class="season-bar"><div class="season-fill" style="width:'+pct+'%"></div></div>'+
+    '<div class="season-next">Дараагийн season: '+nextStr+' • Top 5 → шагнал 🏆</div>';
+  if(!_seasonTick){
+    _seasonTick=setInterval(function(){
+      var lbScreen=document.getElementById('leaderboard');
+      if(document.getElementById('season-banner') && lbScreen && lbScreen.classList.contains('show')) renderSeasonBanner();
+    }, 30000);
+  }
+}
+
+// Өмнөх улиралд Top 5-д орсон бол өөрийн Tcol-д шагнал нэмнэ (зөвхөн өөрийн бичлэгт, нэмэгдүүлэх төдий).
+// lastBonusSeason-оор давхар авахаас хамгаална. Анхаар: live орчинд бодит тест шаардлагатай.
+function claimSeasonBonus(){
+  if(!currentUid) return;
+  var si=seasonInfo();
+  if(si.num<2) return;
+  var me=(_cache.lb&&_cache.lb[currentUid]); if(!me) return;
+  var ended=si.num-1;
+  if((me.lastBonusSeason||0) >= ended) return;
+  if(me.seasonNum!==ended){ me.lastBonusSeason=ended; fbUpdateAuth('leaderboard/'+currentUid,me); return; }
+  var lb=_cache.lb||{}, board=[];
+  Object.keys(lb).forEach(function(k){
+    if(k===AUTH_CONFIG.adminUid)return;
+    var e=lb[k]||{};
+    var sp=(e.seasonNum===ended)?Math.max(0,(e.score||0)-(e.seasonBase||0)):0;
+    board.push({uid:k,sp:sp});
+  });
+  board.sort(function(a,b){return b.sp-a.sp;});
+  var rank=-1; for(var i=0;i<board.length;i++){ if(board[i].uid===currentUid){rank=i;break;} }
+  var rewards=[500,400,300,200,100];
+  if(rank>=0 && rank<5 && board[rank].sp>0){
+    me.bonusTcol=(me.bonusTcol||0)+(rewards[rank]||0);
+    me.lastBonusSeason=ended;
+    fbUpdateAuth('leaderboard/'+currentUid,me);
+    setTimeout(function(){ showToast('🏆 Season '+ended+': Top '+(rank+1)+'! +'+(rewards[rank]||0)+' 💎'); },800);
+  }else{
+    me.lastBonusSeason=ended;
+    fbUpdateAuth('leaderboard/'+currentUid,me);
+  }
 }
 
 function renderLeaderboard(){
+  renderSeasonBanner();
   const lb=getLeaderboard();
   const el=document.getElementById('lb-list');if(!el)return;el.innerHTML='';
   if(lb.length===0){el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--t2)">Одоохондоо өгөгдөл байхгүй</div>';return}
   lb.forEach((u,i)=>{
     const rankCls=i===0?'r1':i===1?'r2':i===2?'r3':'';
-    const tcol=getTcolBadge(i);
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i<=4?'🎖':'');
+    const t=u.tier;
     const div=document.createElement('div');
-    div.className='lb-item'+(u.name===currentUser?' me':'');
+    div.className='lb-item'+(u.name===currentUser?' me':'')+(i<=4?' top5':'');
     div.innerHTML=`
-      <div class="lb-rank ${rankCls}">${i+1}</div>
+      <div class="lb-rank ${rankCls}">${medal||(i+1)}</div>
       <div class="lb-avatar">${u.name.charAt(0).toUpperCase()}</div>
       <div class="lb-info">
-        <div class="lb-name">${sanitize(u.name)}${u.name===currentUser?' <span style="font-size:11px;color:var(--purple)">(та)</span>':''}</div>
-        <div class="lb-meta">Lv.${u.lvl} · ${u.tests} тест · 🔥${u.streak}</div>
+        <div class="lb-name">${sanitize(u.name)}${u.name===currentUser?' <span style="font-size:11px;color:var(--purple)">(та)</span>':''} <span class="tier-badge ${t.cls}">${t.icon} ${t.name}</span></div>
+        <div class="lb-meta">Lv.${u.lvl} · 💎${u.tcol} · 🔥${u.streak}</div>
       </div>
       <div class="lb-tcol">
-        <div class="lb-score">${u.score}</div>
-        ${tcol.txt?`<span class="tcol-badge ${tcol.cls}">${tcol.txt}</span>`:''}
+        <div class="lb-score">${u.seasonPts}</div>
+        <div class="lb-score-lbl">энэ улирал</div>
       </div>`;
     el.appendChild(div);
   });
@@ -2055,6 +2248,7 @@ async function refreshLeaderboard(){
     var r=await fbGet('leaderboard');
     if(r.ok && r.data) _cache.lb=r.data;
   }catch(e){}
+  claimSeasonBonus();
   renderLeaderboard();
 }
 
@@ -2131,6 +2325,13 @@ function renderProfile(){
   const users=getUsers();
   const {lvl,pct,lbl}=calcLevel(stats.totalCorrect||0);
   const joinedDays=users[currentUid]?.joinedAt?Math.floor((Date.now()-users[currentUid].joinedAt)/86400000):0;
+  const myBonus=(_cache.lb&&currentUid&&_cache.lb[currentUid]&&_cache.lb[currentUid].bonusTcol)||0;
+  const myEntry=(_cache.lb&&currentUid&&_cache.lb[currentUid])||{};
+  const mySi=seasonInfo();
+  const myScore=Math.max(stats.totalCorrect||0, myEntry.score||0);
+  const myTcol=effTcol({score:myScore, bonusTcol:myBonus, seasonNum:myEntry.seasonNum}, mySi);
+  const tier=calcTier(myTcol);
+  const tierNext=tier.next?`<span style="font-size:11px;color:var(--t2)">${tier.next.icon} ${tier.next.name} хүртэл ${tier.toNext} 💎</span>`:`<span style="font-size:11px;color:var(--t2)">Хамгийн дээд зэрэг! 🔥</span>`;
 
   // Header
   const ph=document.getElementById('profile-header');
@@ -2141,8 +2342,13 @@ function renderProfile(){
       <div class="profile-role">${isAdmin()?'👑 Admin':'🎓 Сурагч'}</div>
       <div class="profile-level">
         <span class="profile-level-badge">Lv.${lvl} — ${lbl}</span>
-        <span style="font-size:12px;color:var(--t2)">${joinedDays} өдрийн өмнө нэгдсэн</span>
+        <span class="tier-badge ${tier.cls}">${tier.icon} ${tier.name}</span>
       </div>
+      <div class="profile-level" style="margin-top:.4rem">
+        <span style="font-size:13px;font-weight:700;color:var(--purple)">💎 ${myTcol}</span>
+        ${tierNext}
+      </div>
+      <div style="font-size:12px;color:var(--t2);margin-top:.4rem">${joinedDays} өдрийн өмнө нэгдсэн</div>
     </div>`;
 
   // Stats
@@ -2237,6 +2443,17 @@ function renderEditorContent(){
 
 function setAdminSection(s){adminSection=s;renderEditorContent()}
 
+// Огноо + цаг (админ самбарт хэрэглэгчийн нэгдсэн хугацааг харуулна)
+function fmtDateTime(ts){
+  if(!ts) return '<span style="color:var(--t2)">—</span>';
+  const d=new Date(ts), p=n=>String(n).padStart(2,'0');
+  const today=new Date();
+  const sameDay = d.getFullYear()===today.getFullYear() && d.getMonth()===today.getMonth() && d.getDate()===today.getDate();
+  const time=`${p(d.getHours())}:${p(d.getMinutes())}`;
+  if(sameDay) return `Өнөөдөр ${time}`;
+  return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())} <span style="color:var(--t2)">${time}</span>`;
+}
+
 function renderAdminSection(){
   const c=document.getElementById('admin-section-content');if(!c)return;
   if(adminSection==='users')renderUserAdmin(c);
@@ -2247,16 +2464,23 @@ function renderAdminSection(){
 function renderUserAdmin(c){
   const users=getUsers();
   const lb=_cache.lb||{};
+  const aSi=seasonInfo();
   const rows=Object.entries(users).filter(([u,d])=>u!==ADMIN_USER && u!==AUTH_CONFIG.adminUid && (!d||d.role!=='admin')).map(([u,d])=>{
     const nm=(d&&d.displayName)||u;
     const cl=lb[u]||{};
     const tests=cl.tests||0;
     const score=cl.score||0;
+    const tcol=effTcol({score:score, bonusTcol:cl.bonusTcol, seasonNum:cl.seasonNum}, aSi);
+    const tier=calcTier(tcol);
+    const lvl=calcLevel(score).lvl;
     const blocked=d&&d.blocked?true:false;
     return `<tr>
       <td><strong>${sanitize(nm)}</strong></td>
       <td>${tests}</td>
       <td>${score}</td>
+      <td style="white-space:nowrap"><strong style="color:var(--purple)">💎${tcol}</strong> <span style="color:var(--t2);font-size:11px">Lv.${lvl}</span></td>
+      <td style="white-space:nowrap"><span class="tier-badge ${tier.cls}">${tier.icon} ${tier.name}</span></td>
+      <td style="white-space:nowrap;font-size:12px">${fmtDateTime(d&&d.joinedAt)}</td>
       <td><span class="status-dot ${blocked?'dot-blocked':'dot-active'}"></span>${blocked?'Блоклосон':'Идэвхтэй'}</td>
       <td style="display:flex;gap:6px">
         <button class="btn-sm danger" onclick="toggleBlock('${u}','${blocked}')">${blocked?'Нээх':'Блоклох'}</button>
@@ -2264,11 +2488,28 @@ function renderUserAdmin(c){
       </td>
     </tr>`;
   }).join('');
-  c.innerHTML=`
+  // Админы өөрийн үзүүлэлт (бүх системтэй тулгасан: Tcol, түвшин, цол)
+  var aStats=getStats(currentUser), aBonus=(_cache.lb&&currentUid&&_cache.lb[currentUid]&&_cache.lb[currentUid].bonusTcol)||0;
+  var aEntry=(_cache.lb&&currentUid&&_cache.lb[currentUid])||{};
+  var aScore=Math.max(aStats.totalCorrect||0, aEntry.score||0);
+  var aTcol=effTcol({score:aScore, bonusTcol:aBonus, seasonNum:aEntry.seasonNum}, aSi);
+  var aTier=calcTier(aTcol), aLvl=calcLevel(aScore).lvl;
+  var adminCard=`<div style="background:linear-gradient(135deg,rgba(108,92,231,.1),rgba(162,155,254,.05));border:1.5px solid var(--border);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <div class="lb-avatar" style="background:linear-gradient(135deg,var(--purple),var(--pl))">${currentUser.charAt(0).toUpperCase()}</div>
+    <div style="flex:1;min-width:160px">
+      <div style="font-weight:700">👑 ${sanitize(currentUser)} <span style="font-size:12px;color:var(--t2);font-weight:400">(админ)</span></div>
+      <div style="font-size:12px;color:var(--t2);margin-top:2px">Тест: ${aStats.tests||0} · Зөв: ${aScore} · Lv.${aLvl}</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:16px;font-weight:700;color:var(--purple)">💎 ${aTcol}</div>
+      <span class="tier-badge ${aTier.cls}">${aTier.icon} ${aTier.name}</span>
+    </div>
+  </div>`;
+  c.innerHTML=adminCard+`
     <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;overflow-x:auto">
       <table class="user-table">
-        <thead><tr><th>Нэр</th><th>Тест</th><th>Оноо</th><th>Төлөв</th><th>Үйлдэл</th></tr></thead>
-        <tbody>${rows||'<tr><td colspan="5" style="text-align:center;color:var(--t2);padding:2rem">Хэрэглэгч байхгүй</td></tr>'}</tbody>
+        <thead><tr><th>Нэр</th><th>Тест</th><th>Оноо</th><th>💎</th><th>Цол</th><th>Нэгдсэн</th><th>Төлөв</th><th>Үйлдэл</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="8" style="text-align:center;color:var(--t2);padding:2rem">Хэрэглэгч байхгүй</td></tr>'}</tbody>
       </table>
     </div>`;
 }
