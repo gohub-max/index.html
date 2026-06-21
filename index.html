@@ -65,6 +65,18 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
 .home-hero h1 em{font-style:normal;color:var(--purple)}
 .home-hero p{font-size:15px;color:var(--t2);line-height:1.7;max-width:460px;margin:0 auto 2rem}
 .streak-hero{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap}
+/* ЭЕШ COUNTDOWN */
+.eysh-card{background:linear-gradient(135deg,var(--purple),var(--pd));color:#fff;border-radius:18px;padding:1.25rem 1rem;margin-bottom:1.5rem;text-align:center;box-shadow:0 8px 24px rgba(108,92,231,.28)}
+.eysh-title{font-size:14px;font-weight:600;opacity:.95;margin-bottom:.85rem;letter-spacing:.3px}
+.eysh-timer{display:flex;align-items:flex-start;justify-content:center;gap:6px}
+.eysh-unit{display:flex;flex-direction:column;align-items:center;min-width:56px}
+.eysh-n{font-size:32px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.eysh-l{font-size:11px;opacity:.85;margin-top:5px}
+.eysh-sep{font-size:28px;font-weight:700;line-height:1;opacity:.55;padding-top:1px}
+.eysh-date{font-size:12px;opacity:.9;margin-top:.9rem}
+.eysh-card.passed{background:linear-gradient(135deg,var(--green),#00a884)}
+.eysh-card.passed .eysh-timer,.eysh-card.passed .eysh-date{display:none}
+@media(max-width:480px){.eysh-unit{min-width:46px}.eysh-n{font-size:26px}.eysh-sep{font-size:22px}}
 .streak-card{background:var(--card);border:1.5px solid rgba(253,203,110,.4);border-radius:14px;padding:.75rem 1.25rem;display:flex;align-items:center;gap:10px;box-shadow:var(--sh)}
 .streak-fire{font-size:28px;line-height:1}
 .streak-num{font-size:24px;font-weight:700;color:#b7860a;line-height:1}
@@ -550,6 +562,20 @@ nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:
       <div class="welcome-badge" id="welcome-badge">👋 Сайн байна уу!</div>
       <h1>10-р анги<br><em>Нийгэм & Соёл</em></h1>
       <p>Сэдэв сонгоод тестэд орно уу. 10-р ангийн ЭЕШ бэлтгэл, 11-р ангийн дасгал ажил — хариултууд тест болгонд автоматаар холигдоно.</p>
+    </div>
+    <!-- ЭЕШ COUNTDOWN -->
+    <div class="eysh-card" id="eysh-card">
+      <div class="eysh-title" id="eysh-title">📚 ЭЕШ эхлэхэд</div>
+      <div class="eysh-timer" id="eysh-timer">
+        <div class="eysh-unit"><span class="eysh-n" id="eysh-d">0</span><span class="eysh-l">өдөр</span></div>
+        <div class="eysh-sep">:</div>
+        <div class="eysh-unit"><span class="eysh-n" id="eysh-h">0</span><span class="eysh-l">цаг</span></div>
+        <div class="eysh-sep">:</div>
+        <div class="eysh-unit"><span class="eysh-n" id="eysh-m">0</span><span class="eysh-l">мин</span></div>
+        <div class="eysh-sep">:</div>
+        <div class="eysh-unit"><span class="eysh-n" id="eysh-s">0</span><span class="eysh-l">сек</span></div>
+      </div>
+      <div class="eysh-date" id="eysh-date">2026 оны 6-р сарын 25, 16:30</div>
     </div>
     <div class="streak-hero">
       <div class="streak-card">
@@ -1587,7 +1613,35 @@ function enterApp(){
   try{renderTopicGrid();}catch(e){console.error('renderTopicGrid',e);}
   try{renderLeaderboard();}catch(e){console.error('renderLeaderboard',e);}
   try{syncStreakFromCloud();}catch(e){console.error('syncStreakFromCloud',e);}
+  try{startEyshTick();}catch(e){console.error('startEyshTick',e);}
   showMain('home');
+}
+
+// ===== ЭЕШ COUNTDOWN =====
+// Шалгалтын огноо/цагийг ЭНД өөрчилнө (хэрэглэгчийн утасны цагаар тооцно).
+// Сар 0-ээс эхэлдэг тул 6-р сар = 5. Дараах нь: 2026 оны 6-р сарын 25, 16:30.
+var EYSH_DATE=new Date(2026,5,25,16,30,0);
+var _eyshTick=null;
+function renderEysh(){
+  var card=document.getElementById('eysh-card'); if(!card) return;
+  var diff=EYSH_DATE.getTime()-Date.now();
+  if(diff<=0){
+    card.classList.add('passed');
+    var tt=document.getElementById('eysh-title'); if(tt)tt.textContent='🎓 ЭЕШ эхэллээ — Амжилт хүсье!';
+    return;
+  }
+  card.classList.remove('passed');
+  var s=Math.floor(diff/1000);
+  var d=Math.floor(s/86400); s-=d*86400;
+  var h=Math.floor(s/3600); s-=h*3600;
+  var m=Math.floor(s/60); s-=m*60;
+  var set=function(id,v){var el=document.getElementById(id); if(el)el.textContent=v;};
+  set('eysh-d',d); set('eysh-h',h); set('eysh-m',m); set('eysh-s',s);
+}
+function startEyshTick(){
+  renderEysh();
+  if(_eyshTick) return;
+  _eyshTick=setInterval(renderEysh,1000);
 }
 
 // ===== STREAK =====
